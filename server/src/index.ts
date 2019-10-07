@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-import { HTTPServer } from "./HTTPServer";
+import HTTPServer from "./HTTPServer";
+import * as GameBundles from "./GameBundles";
 
-const server = new HTTPServer(+process.env.SERVER_PORT);
+const httpServer = new HTTPServer(+process.env.SERVER_PORT, GameBundles);
