@@ -7,7 +7,7 @@ const levelFormats: { [level: number]: (content: string) => string } = {
     5: (content: string) => `\x1b[36m[DEBUG]\x1b[0m ${content}`,
 };
 
-export class Logger {
+export default class Logger {
     public static log(content: string, level: LogLevel = LogLevel.Info): void {
         console.log(levelFormats[level](content));
     }

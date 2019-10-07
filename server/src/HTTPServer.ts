@@ -8,7 +8,7 @@ import httpStatus from "http-status";
 
 import { MainRouter } from "./router";
 import IGameBundle from "./GameBundles/IGameBundle";
-import { Logger } from "./util/Logger";
+import Logger from "./util/Logger";
 
 export default class HTTPServer {
 	expressApp: Express;
