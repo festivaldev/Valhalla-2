@@ -8,7 +8,7 @@ const levelFormats: { [level: number]: (content: string) => string } = {
 };
 
 export class Logger {
-    public static log(content: string, level: LogLevel = LogLevel.info): void {
+    public static log(content: string, level: LogLevel = LogLevel.Info): void {
         console.log(levelFormats[level](content));
     }
 }
