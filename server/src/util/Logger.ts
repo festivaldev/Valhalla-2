@@ -14,10 +14,10 @@ export class Logger {
 }
 
 export enum LogLevel {
-    error = 0,
-    warn = 1,
-    info = 2,
-    http = 3,
-    verbose = 4,
-    debug = 5,
+    Error = 0,
+    Warn = 1,
+    Info = 2,
+    Http = 3,
+    Verbose = 4,
+    Debug = 5,
 }
