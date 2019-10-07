@@ -1,8 +1,8 @@
-import path from "path"
 import { Express } from "express";
+import path from "path";
 
-import IGameBundle from "../IGameBundle"
-import Middleware from "./example.middleware"
+import IGameBundle from "../IGameBundle";
+import Middleware from "./example.middleware";
 
 export class ExampleGameBundle implements IGameBundle {
 	displayName: string = "Example Game Bundle";

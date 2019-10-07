@@ -7,7 +7,7 @@ import fs from "fs";
 import httpStatus from "http-status";
 
 import { MainRouter } from "./router";
-import IGameBundle from "./GameBundles/IGameBundle"
+import IGameBundle from "./GameBundles/IGameBundle";
 
 export default class HTTPServer {
 	expressApp: Express;
@@ -24,8 +24,8 @@ export default class HTTPServer {
 		this.expressApp.use("/", MainRouter);
 		
 		
-		this.httpServer = http.createServer(this.expressApp).listen(port, () => {
-			console.log(`\x1b[34m[INFO]\x1b[0m Valhalla started on port ${port}!`)
+        this.httpServer = http.createServer(this.expressApp).listen(port, () => {
+            console.log(`\x1b[34m[INFO]\x1b[0m Valhalla started on port ${port}!`);
 		});
 		
 		Object.entries(gameBundles).forEach(([bundleId, bundleClass]) => {
