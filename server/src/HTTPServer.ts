@@ -26,7 +26,7 @@ export default class HTTPServer {
 		
 		
         this.httpServer = http.createServer(this.expressApp).listen(port, () => {
-            Logger.log(`\x1b[34m[INFO]\x1b[0m Valhalla started on port ${port}!`);
+            Logger.log(`Valhalla started on port ${port}!`);
 		});
 		
 		Object.entries(gameBundles).forEach(([bundleId, bundleClass]) => {
