@@ -6,9 +6,12 @@ import HTTPServer from "./HTTPServer";
 import SocketServer from "./SocketServer";
 import * as GameBundles from "./GameBundles";
 
-import GameServer, {GameManager} from "./classes/Server";
+import GameServer from "./classes/Server";
 import ConnectedUsers from "./classes/ConnectedUsers";
+import GameManager from "./classes/GameManager";
 
 const httpServer = new HTTPServer(+process.env.SERVER_PORT, GameBundles);
-const gameServer = new GameServer(new ConnectedUsers(), new GameManager());
+
+const connectedUsers = new ConnectedUsers();
+const gameServer = new GameServer(connectedUsers, new GameManager(20, connectedUsers));
 const socketServer = new SocketServer(httpServer, gameServer);

@@ -1,3 +1,11 @@
+export enum DisconnectReason {
+    BANNED = "Banned",
+    IDLE_TIMEOUT = "Kicked due to idle",
+    KICKED = "Kicked by server administrator",
+    MANUAL = "Leaving",
+    PING_TIMEOUT = "Ping timeout"
+}
+
 export enum ErrorCode {
     ACCESS_DENIED = "Access denied.",
     ALREADY_STARTED = "The game has already started.",
@@ -37,12 +45,65 @@ export enum ErrorCode {
     WRONG_PASSWORD = "That password is incorrect."
 }
 
-export enum DisconnectReason {
-    BANNED = "Banned",
-    IDLE_TIMEOUT = "Kicked due to idle",
-    KICKED = "Kicked by server administrator",
-    MANUAL = "Leaving",
-    PING_TIMEOUT = "Ping timeout"
+export enum GameInfo {
+    CREATED,
+    HOST,
+    ID,
+    GAME_OPTIONS,
+    HAS_PASSWORD,
+    PLAYERS,
+    SPECTATORS,
+    STATE
+}
+
+export enum GamePlayerInfo {
+    NAME,
+    SCORE,
+    STATUS
+}
+
+export enum LongPollEvent {
+    BANNED,
+    CHAT,
+    FILTERED_CHAT,
+    GAME_LIST_REFRESH,
+    GAME_OPTIONS_CHANGED,
+    GAME_PLAYER_INFO_CHANGE,
+    GAME_PLAYER_JOIN,
+    GAME_PLAYER_KICKED_IDLE,
+    GAME_PLAYER_LEAVE,
+    GAME_PLAYER_SKIPPED,
+    GAME_SPECTATOR_JOIN,
+    GAME_SPECTATOR_LEAVE,
+    GAME_ROUND_COMPLETE,
+    GAME_STATE_CHANGE,
+    KICKED,
+    KICKED_FROM_GAME_IDLE,
+    NEW_PLAYER,
+    NOOP,
+    PLAYER_LEAVE
+}
+
+export enum LongPollResponse {
+    EMOTE,
+    ERROR,
+    ERROR_CODE,
+    EVENT,
+    FROM,
+    FROM_ADMIN,
+    GAME_ID,
+    GAME_INFO,
+    GAME_STATE,
+    ID_CODE,
+    INTERMISSION,
+    MESSAGE,
+    NICKNAME,
+    PLAYER_INFO,
+    REASON,
+    ROUND_WINNER,
+    SIGIL,
+    TIMESTAMP,
+    WALL
 }
 
 export enum MessageType {

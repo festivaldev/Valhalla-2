@@ -25,11 +25,8 @@ export default class SocketServer {
 		let isAdmin = ["1", "127.0.0.1"].indexOf(hostname) >= 0;
 		let user = new User(
 			socket.handshake.query["username"],
-			null,
 			hostname,
 			isAdmin,
-			null,
-			null,
 			socket.request.headers["accept-language"],
 			socket.request.headers["user-agent"]
 		);
@@ -42,7 +39,7 @@ export default class SocketServer {
 			socket.emit("message", { error: errorCode });
 			socket.disconnect(true);
 		}
-
+		
 		socket.on("disconnect", () => {
 			let user = this.gameServer.getConnectedUsers().getUser(socket.handshake.query["username"]);
 			

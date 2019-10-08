@@ -1,9 +1,9 @@
 import ConnectedUsers from "./ConnectedUsers"
-export class GameManager {}
+import GameManager from "./GameManager"
 
 export default class Server {
     private users: ConnectedUsers
-    private gameManager: GameManager
+    private gameManager: GameManager;
     
     constructor(connectedUsers: ConnectedUsers, gameManager: GameManager) {
         this.users = connectedUsers;
