@@ -22,11 +22,11 @@ export default class SocketServer {
 		let hostname = socket.request.connection.remoteAddress.replace(/:*(.*?):/g, '');
 		Logger.log(`New connection from ${hostname}`);
 		
-		let isAdmin = ["1", "127.0.0.1"].indexOf(hostname) >= 0;
 		let user = new User(
 			socket.handshake.query["username"],
+			socket.id,
 			hostname,
-			isAdmin,
+			["1", "127.0.0.1"].indexOf(hostname) >= 0,
 			socket.request.headers["accept-language"],
 			socket.request.headers["user-agent"]
 		);
@@ -51,8 +51,19 @@ export default class SocketServer {
 			}
 		});
 
-		socket.on("message", () => {
-			console.log("message");
-		});
+		socket.on("message", (data) => this.handleMessage(socket, data));
+	}
+	
+	private handleMessage(socket: io.Socket, messageData: any) {
+		let user = this.gameServer.getConnectedUsers().getUser(socket.handshake.query["username"]);
+		
+		switch (messageData.type) {
+			case "create-game":
+				this.gameServer.getGameManager().createGameWithPlayer(user, this.httpServer.gameBundles[messageData.payload["gameBundle"]]);
+				break;
+			case "start-game":
+				user.getGame().start();
+			default: break;
+		}
 	}
 }

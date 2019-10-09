@@ -29,9 +29,11 @@ export default class HTTPServer {
             Logger.log(`Valhalla started on port ${port}!`);
 		});
 		
+		this.gameScripts += `const gameBundles = {};\n`;
 		Object.entries(gameBundles).forEach(([bundleId, bundleClass]) => {
 			this.gameBundles[bundleId] = new bundleClass(this.expressApp);
 			
+			this.gameScripts += `gameBundles["${bundleId}"] = ${JSON.stringify(this.gameBundles[bundleId].getInfo())};\n\n`;
 			this.gameScripts += fs.readFileSync(this.gameBundles[bundleId].clientScript) + "\n\n";
 		});
 		

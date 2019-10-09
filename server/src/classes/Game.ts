@@ -3,7 +3,7 @@ import User from "./User"
 import ConnectedUsers from "./ConnectedUsers";
 import GameManager from "./GameManager";
 import IGameBundle from "../GameBundles/IGameBundle";
-import IGameLogic from "./IGameLogic";
+import IGameLogic from "../GameBundles/IGameLogic";
 import Logger from "../util/Logger";
 import { LongPollEvent, LongPollResponse, MessageType, GameInfo, GamePlayerInfo } from "./Constants";
 
@@ -99,11 +99,10 @@ export default class Game {
 	}
 
 	public removeSpectator(user: User) {
-		Logger.log(`Removing spectator ${user} from game ${this.id}`);
-		
 		if (this.spectators.indexOf(user) < 0) {
 			return;
 		}
+		Logger.log(`Removing spectator ${user} from game ${this.id}`);
 		
 		this.spectators.splice(this.spectators.indexOf(user), 1);
 		user.leaveGame(this);
@@ -190,5 +189,20 @@ export default class Game {
 		users.concat(this.spectators);
 		
 		return users;
+	}
+	
+	public start(): boolean {
+		let started = this.gameLogic.handleGameStart();
+		
+		if (started) {
+			Logger.log(`Starting game ${this.getId()} with ${this.players.length} player(s), ${this.spectators.length} spectator(s)`);
+			
+			if (this.gameLogic.handleGameStartNextRound) {
+				this.gameLogic.handleGameStartNextRound();
+			}
+			this.gameManager.broadcastGameListRefresh();
+		}
+		
+		return started;
 	}
 }

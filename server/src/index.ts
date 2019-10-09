@@ -15,3 +15,5 @@ const httpServer = new HTTPServer(+process.env.SERVER_PORT, GameBundles);
 const connectedUsers = new ConnectedUsers();
 const gameServer = new GameServer(connectedUsers, new GameManager(20, connectedUsers));
 const socketServer = new SocketServer(httpServer, gameServer);
+
+global.socketServer = socketServer;

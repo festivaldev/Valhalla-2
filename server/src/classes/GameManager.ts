@@ -3,6 +3,7 @@ import IGameBundle from "../GameBundles/IGameBundle";
 import ConnectedUsers from "./ConnectedUsers";
 import User from "./User";
 import Logger, { LogLevel } from "../util/Logger";
+import { MessageType, LongPollResponse, LongPollEvent } from "./Constants";
 
 export default class GameManager {
 	private maxGames: number = 20;
@@ -57,12 +58,14 @@ export default class GameManager {
 			game.removeSpectator(user);
 		});
 		
-		Logger.log(`Destroyed game ${game.getId}`);
+		Logger.log(`Destroyed game ${game.getId()}`);
 		this.broadcastGameListRefresh();
 	}
 	
 	public broadcastGameListRefresh() {
-		// TODO: Broadcast Game List Refresh
+		this.connectedUsers.broadcastToAll(MessageType.GAME_EVENT, {
+			[LongPollResponse.EVENT]: LongPollEvent.GAME_LIST_REFRESH
+		});
 	}
 	
 	public get(): number {

@@ -1,5 +1,5 @@
 import User from "./User"
-import { ErrorCode, DisconnectReason, MessageType } from "./Constants"
+import { ErrorCode, DisconnectReason, MessageType, LongPollResponse, LongPollEvent } from "./Constants"
 
 export default class ConnectedUsers {
     public static PING_TIMEOUT: number = 90 * 1000;
@@ -26,7 +26,11 @@ export default class ConnectedUsers {
         } else {
             this.users[user.getNickname().toLowerCase()] = user;
 
-            const data: Map<String, any> = new Map();
+            let data = {
+				[LongPollResponse.EVENT]: LongPollEvent.NEW_PLAYER,
+				[LongPollResponse.NICKNAME]: user.getNickname(),
+				[LongPollResponse.SOCKET_ID]: user.getSocketId()
+			}
 
             if (true) {
                 this.broadcastToAll(MessageType.PLAYER_EVENT, data);
@@ -89,7 +93,10 @@ export default class ConnectedUsers {
 
     public broadcastToList(broadcastTo: Array<User>, type: MessageType, masterData: Object) {
         broadcastTo.forEach(u => {
-            // TODO: Broadcast to user
+			u.emitMessage({
+				type: type,
+				payload: masterData
+			});
         });
     }
 

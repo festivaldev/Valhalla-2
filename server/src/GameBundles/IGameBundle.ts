@@ -1,4 +1,4 @@
-import IGameLogic from "../classes/IGameLogic";
+import IGameLogic from "./IGameLogic";
 import Game from "../classes/Game";
 
 export default interface IGameBundle {
@@ -8,6 +8,8 @@ export default interface IGameBundle {
 	author: string;
 	clientDir: string;
 	clientScript: string;
+	
+	getInfo(): Object;
 	
 	gameLogic: IGameLogic;
 	createGameLogicInstance(game: Game): IGameLogic;

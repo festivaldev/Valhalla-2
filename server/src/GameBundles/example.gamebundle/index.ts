@@ -3,7 +3,7 @@ import path from "path";
 
 import IGameBundle from "../IGameBundle";
 import Middleware from "./example.middleware";
-import IGameLogic from "../../classes/IGameLogic";
+import IGameLogic from "../IGameLogic";
 import ExampleGameLogic from "./ExampleGameLogic";
 import Game from "../../classes/Game";
 
@@ -14,6 +14,15 @@ export class ExampleGameBundle implements IGameBundle {
 	author: string = "Team FESTIVAL";
 	clientDir: string = path.join(__dirname, "/client");
 	clientScript: string = path.join(this.clientDir, "client.js");
+	
+	getInfo(): Object {
+		return {
+			displayName: this.displayName,
+			bundleId: this.bundleId,
+			version: this.version,
+			author: this.author,
+		}
+	}
 	
 	gameLogic: IGameLogic;
 	

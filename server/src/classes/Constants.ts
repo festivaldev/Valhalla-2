@@ -94,7 +94,7 @@ export enum LongPollResponse {
     GAME_ID,
     GAME_INFO,
     GAME_STATE,
-    ID_CODE,
+    SOCKET_ID,
     INTERMISSION,
     MESSAGE,
     NICKNAME,
