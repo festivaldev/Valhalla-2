@@ -1,0 +1,3 @@
+[submodule "client/metroui-vue"]
+	path = client/metroui-vue
+	url = https://github.com/SniperGER/metroUI-Vue.git
