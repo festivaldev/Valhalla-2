@@ -20,7 +20,7 @@ export default class GameManager {
 	private createGame(gameBundle: IGameBundle): Game {
 		if (this.games.entries.length >= this.maxGames) return null;
 		
-		let game: Game = new Game(this.nextId, this.connectedUsers, this, gameBundle);
+		let game: Game = new Game(this.get(), this.connectedUsers, this, gameBundle);
 		if (game.getId() < 0) return null;
 		
 		this.games.set(game.getId(), game);
@@ -69,8 +69,8 @@ export default class GameManager {
 	}
 	
 	public get(): number {
-		if (this.games.entries.length > this.maxGames) return -1;
-		if (!this.games.has(this.nextId) && this.nextId >= 0) {
+		if (this.games.entries.length >= this.maxGames) return -1;
+		if (this.games.has(this.nextId) && this.nextId >= 0) {
 			let ret: number = this.nextId = this.candidateGameId(this.nextId);
 			return ret;
 		} else {
@@ -82,7 +82,7 @@ export default class GameManager {
 	
 	private candidateGameId(skip: number = -1): number {
 		let maxGames = this.maxGames;
-		if (this.games.entries.length > maxGames) return -1;
+		if (this.games.entries.length >= maxGames) return -1;
 		for (var i = 0; i < maxGames; i++) {
 			if (i == skip) continue;
 			if (!this.games.has(i)) return i;

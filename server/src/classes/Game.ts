@@ -157,7 +157,7 @@ export default class Game {
 		this.notifyGameOptionsChanged()
 	}
 
-	public getInfo(includePassword: boolean = false) {
+	public getInfo(includePassword: boolean = false): Object {
 		return {
 			[GameInfo.ID]: this.id,
 			[GameInfo.CREATED]: this.created,
@@ -168,6 +168,10 @@ export default class Game {
 			[GameInfo.SPECTATORS]: this.spectators.map(user => user.getNickname())
 		}
 	}
+	
+	public getGameBundle(): IGameBundle {
+		return this.gameBundle;
+	}
 
 	public getAllPlayerInfo(): Array<Object> {
 		return this.players.map(player => this.getPlayerInfo(player));
@@ -175,7 +179,7 @@ export default class Game {
 
 	public getPlayerInfo(player: Player): Object {
 		return {
-			[GamePlayerInfo.NAME]: player.getUser().getNickname,
+			[GamePlayerInfo.NAME]: player.getUser().getNickname(),
 			[GamePlayerInfo.SCORE]: player.getScore()
 		}
 	}

@@ -2,7 +2,7 @@ import io from "socket.io";
 import HTTPServer from "./HTTPServer";
 import GameServer from "./classes/Server"
 import User from "./classes/User"
-import { DisconnectReason, ErrorCode } from "./classes/Constants"
+import { DisconnectReason, ErrorCode, MessageType, LongPollResponse, LongPollEvent } from "./classes/Constants"
 import Logger from "./util/Logger"
 
 export default class SocketServer {
@@ -34,9 +34,12 @@ export default class SocketServer {
 		let errorCode: ErrorCode = this.gameServer.getConnectedUsers().checkAndAdd(user);
 		
 		if (null == errorCode) {
-			
+			// this.gameServer.getGameManager().createGameWithPlayer(user, this.httpServer.gameBundles["ExampleGameBundle"]);
+			this.gameServer.getConnectedUsers().broadcastToList([user], MessageType.GAME_EVENT, {
+				[LongPollResponse.EVENT]: LongPollEvent.GAME_LIST_REFRESH
+			});
 		} else {
-			socket.emit("message", { error: errorCode });
+			socket.emit("connect_error", JSON.stringify({ error: errorCode }));
 			socket.disconnect(true);
 		}
 		
@@ -51,7 +54,7 @@ export default class SocketServer {
 			}
 		});
 
-		socket.on("message", (data) => this.handleMessage(socket, data));
+		socket.on("message", (data) => this.handleMessage(socket, JSON.parse(data)));
 	}
 	
 	private handleMessage(socket: io.Socket, messageData: any) {

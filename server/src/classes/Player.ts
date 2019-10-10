@@ -2,7 +2,7 @@ import User from "./User";
 
 export default class Player {
 	private user: User;
-	private score: number;
+	private score: number = 0;
 
 	constructor(user: User) {
 		this.user = user;

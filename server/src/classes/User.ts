@@ -25,7 +25,7 @@ export default class User {
     }
 
 	public emitMessage(message: any) {
-		global.socketServer.socket.to(this.socketId).emit("message", message);
+		global.socketServer.socket.to(this.socketId).emit("message", JSON.stringify(message));
 	}
 
     public isAdmin(): boolean {

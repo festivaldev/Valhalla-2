@@ -46,70 +46,68 @@ export enum ErrorCode {
 }
 
 export enum GameInfo {
-    CREATED,
-    HOST,
-    ID,
-    GAME_OPTIONS,
-    HAS_PASSWORD,
-    PLAYERS,
-    SPECTATORS,
-    STATE
+    CREATED = "created",
+    HOST = "host",
+    ID = "id",
+    GAME_OPTIONS = "game-options",
+    HAS_PASSWORD = "has-password",
+    PLAYERS = "players",
+    SPECTATORS = "spectators",
+    STATE = "state"
 }
 
 export enum GamePlayerInfo {
-    NAME,
-    SCORE,
-    STATUS
+    NAME = "name",
+    SCORE = "score",
+    STATUS = "status"
 }
 
 export enum LongPollEvent {
-    BANNED,
-    CHAT,
-    FILTERED_CHAT,
-    GAME_LIST_REFRESH,
-    GAME_OPTIONS_CHANGED,
-    GAME_PLAYER_INFO_CHANGE,
-    GAME_PLAYER_JOIN,
-    GAME_PLAYER_KICKED_IDLE,
-    GAME_PLAYER_LEAVE,
-    GAME_PLAYER_SKIPPED,
-    GAME_SPECTATOR_JOIN,
-    GAME_SPECTATOR_LEAVE,
-    GAME_ROUND_COMPLETE,
-    GAME_STATE_CHANGE,
-    KICKED,
-    KICKED_FROM_GAME_IDLE,
-    NEW_PLAYER,
-    NOOP,
-    PLAYER_LEAVE
+    BANNED = "banned",
+    CHAT = "chat",
+    GAME_LIST_REFRESH = "game-list-refresh",
+    GAME_OPTIONS_CHANGED = "game-options-changed",
+    GAME_PLAYER_INFO_CHANGE = "game-player-info-change",
+    GAME_PLAYER_JOIN = "game-player-join",
+    GAME_PLAYER_KICKED_IDLE = "game-player-kicked-idle",
+    GAME_PLAYER_LEAVE = "game-player-leave",
+    GAME_PLAYER_SKIPPED = "game-player-skipped",
+    GAME_SPECTATOR_JOIN = "game-spectator-join",
+    GAME_SPECTATOR_LEAVE = "game-spectator-leave",
+    GAME_ROUND_COMPLETE = "game-round-complete",
+    GAME_STATE_CHANGE = "game-state-change",
+    KICKED = "kicked",
+    KICKED_FROM_GAME_IDLE = "kicked-from-game-idle",
+    NEW_PLAYER = "new-player",
+    NOOP = "noop",
+    PLAYER_LEAVE = "player-leave"
 }
 
 export enum LongPollResponse {
-    EMOTE,
-    ERROR,
-    ERROR_CODE,
-    EVENT,
-    FROM,
-    FROM_ADMIN,
-    GAME_ID,
-    GAME_INFO,
-    GAME_STATE,
-    SOCKET_ID,
-    INTERMISSION,
-    MESSAGE,
-    NICKNAME,
-    PLAYER_INFO,
-    REASON,
-    ROUND_WINNER,
-    SIGIL,
-    TIMESTAMP,
-    WALL
+    EMOTE = "emote",
+    ERROR = "error",
+    ERROR_CODE = "error-code",
+    EVENT = "event",
+    FROM = "from",
+    FROM_ADMIN = "from-admin",
+    GAME_ID = "game-id",
+	GAME_INFO = "game-info",
+	GAME_LIST = "game-list",
+    GAME_STATE = "game-state",
+    SOCKET_ID = "socket-id",
+    INTERMISSION = "intermission",
+    MESSAGE = "message",
+    NICKNAME = "nickname",
+    PLAYER_INFO = "player-info",
+    REASON = "reason",
+    ROUND_WINNER = "round-winner",
+    TIMESTAMP = "timestamp",
 }
 
 export enum MessageType {
-    KICKED = 1,
-    PLAYER_EVENT = 3,
-    GAME_EVENT = 3,
-    GAME_PLAYER_EVENT = 4,
-    CHAT = 5
+    KICKED = "kicked",
+    PLAYER_EVENT = "player-event",
+    GAME_EVENT = "game-event",
+    GAME_PLAYER_EVENT = "game-player-event",
+    CHAT = "chat"
 }

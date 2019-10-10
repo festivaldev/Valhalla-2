@@ -55,7 +55,11 @@ export default class ConnectedUsers {
     }
 
     private notifyRemoveUser(user: User, reason: DisconnectReason) {
-        const data: Map<String, any> = new Map();
+        let data = {
+			[LongPollResponse.EVENT]: LongPollEvent.PLAYER_LEAVE,
+			[LongPollResponse.NICKNAME]: user.getNickname(),
+			[LongPollResponse.REASON]: reason
+		};
 
         if (true || reason == DisconnectReason.BANNED || DisconnectReason.KICKED) {
             this.broadcastToAll(MessageType.PLAYER_EVENT, data);
