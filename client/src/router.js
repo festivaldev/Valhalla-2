@@ -21,15 +21,4 @@ const router = new Router({
 	]
 });
 
-router.beforeEach(async (to, from, next) => {
-	if (!window.socket && to.path !== "/login") {
-		return next({
-			path: "/login",
-			replace: true
-		});
-	}
-	
-	next();
-});
-
 export default router;

@@ -7,6 +7,7 @@
 		"build": "vue-cli-service build"
 	},
 	"dependencies": {
+		"axios": "^0.19.0",
 		"core-js": "^2.6.5",
 		"metroui-vue": "file:metroui-vue",
 		"socket.io-client": "^2.3.0",
