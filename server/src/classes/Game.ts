@@ -6,6 +6,7 @@ import IGameBundle from "../GameBundles/IGameBundle";
 import IGameLogic from "../GameBundles/IGameLogic";
 import Logger from "../util/Logger";
 import { LongPollEvent, LongPollResponse, MessageType, GameInfo, GamePlayerInfo } from "./Constants";
+import GameOptions from "./GameOptions";
 
 export default class Game {
 	private id: number;
@@ -15,6 +16,7 @@ export default class Game {
 	private connectedUsers: ConnectedUsers;
 	private gameManager: GameManager;
 	private host: Player;
+	private options: GameOptions;
 	private created: number = new Date().getTime();
 	
 	private gameBundle: IGameBundle;
@@ -27,11 +29,16 @@ export default class Game {
 		
 		this.gameBundle = gameBundle;
 		this.gameLogic = gameBundle.createGameLogicInstance(this);
+		
+		this.options = gameBundle.getOptions();
 	}
 
 	public addPlayer(user: User) {
 		Logger.log(`${user} has joined game ${this.id}`);
-		// TODO: Enforce Player Limit
+
+		if (this.options.playerLimit >= 3 && this.players.length >= this.options.playerLimit) {
+			// TODO: Enforce Player Limit
+		}
 		
 		user.joinGame(this);
 		
@@ -86,7 +93,10 @@ export default class Game {
 
 	public addSpectator(user: User) {
 		Logger.log(`${user} has joined game ${this.id} as a spectator`);
-		// TODO: Enforce Spectator Limit
+		
+		if (this.spectators.length >= this.options.spectatorLimit) {
+			// TODO: Enforce Spectator Limit
+		}
 		
 		user.joinGame(this);
 		this.spectators.push(user);
@@ -148,13 +158,12 @@ export default class Game {
 	}
 	
 	public getPassword(): string {
-		// TODO
-		return null;
+		return this.options.password;
 	}
 	
-	public updateGameSettings(newOptions: Object) {
-		// TODO
-		this.notifyGameOptionsChanged()
+	public updateGameSettings(newOptions: GameOptions) {
+		this.options.update(newOptions);
+		this.notifyGameOptionsChanged();
 	}
 
 	public getInfo(includePassword: boolean = false): Object {
@@ -162,8 +171,8 @@ export default class Game {
 			[GameInfo.ID]: this.id,
 			[GameInfo.CREATED]: this.created,
 			[GameInfo.HOST]: this.host.getUser().getNickname(),
-			[GameInfo.GAME_OPTIONS]: {},	// TODO
-			[GameInfo.HAS_PASSWORD]: false,	// TODO
+			[GameInfo.GAME_OPTIONS]: this.options.serialize(includePassword),
+			[GameInfo.HAS_PASSWORD]: this.options.password != null && this.options.password.length,
 			[GameInfo.PLAYERS]: this.players.map(player => player.getUser().getNickname()),
 			[GameInfo.SPECTATORS]: this.spectators.map(user => user.getNickname())
 		}
@@ -199,7 +208,7 @@ export default class Game {
 		let started = this.gameLogic.handleGameStart();
 		
 		if (started) {
-			Logger.log(`Starting game ${this.getId()} with ${this.players.length} player(s), ${this.spectators.length} spectator(s)`);
+			Logger.log(`Starting game ${this.getId()} with ${this.players.length} player(s) (of ${this.options.playerLimit}), ${this.spectators.length} spectator(s) (of ${this.options.spectatorLimit}) ${this.options.scoreGoal} score limit`);
 			
 			if (this.gameLogic.handleGameStartNextRound) {
 				this.gameLogic.handleGameStartNextRound();

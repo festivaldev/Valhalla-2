@@ -5,7 +5,9 @@ import IGameBundle from "../IGameBundle";
 import Middleware from "./example.middleware";
 import IGameLogic from "../IGameLogic";
 import ExampleGameLogic from "./ExampleGameLogic";
+import ExampleGameOptions from "./ExampleGameOptions";
 import Game from "../../classes/Game";
+import GameOptions from "../../classes/GameOptions";
 
 export class ExampleGameBundle implements IGameBundle {
 	displayName: string = "Example Game Bundle";
@@ -28,6 +30,10 @@ export class ExampleGameBundle implements IGameBundle {
 	
 	constructor(expressApp: Express) {
 		expressApp.use("/example", Middleware);
+	}
+	
+	getOptions(): GameOptions {
+		return new ExampleGameOptions();
 	}
 	
 	createGameLogicInstance(game: Game): ExampleGameLogic {

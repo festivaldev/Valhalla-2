@@ -53,10 +53,7 @@ export default class HTTPServer {
 						id: game.getId(),
 						host: game.getHost().getNickname(),
 						gameBundle: game.getGameBundle().displayName,
-						playerCount: game.getAllPlayerInfo().length,
-						playerInfo: game.getAllPlayerInfo(),
-						maxPlayers: -1,
-						passworded: false,
+						gameInfo: game.getInfo()
 					});
 				}
 			});

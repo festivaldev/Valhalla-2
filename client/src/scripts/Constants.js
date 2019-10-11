@@ -56,6 +56,13 @@ export const GameInfo = {
     STATE: "state"
 }
 
+export const GameOptionData = {
+    PASSWORD: "password",
+    PLAYER_LIMIT: "player-limit",
+    SPECTATOR_LIMIT: "spectator-limit",
+    SCORE_LIMIT: "score-limit"
+}
+
 export const GamePlayerInfo = {
     NAME: "name",
     SCORE: "score",

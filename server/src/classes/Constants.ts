@@ -56,6 +56,13 @@ export enum GameInfo {
     STATE = "state"
 }
 
+export enum GameOptionData {
+    PASSWORD = "password",
+    PLAYER_LIMIT = "player-limit",
+    SPECTATOR_LIMIT = "spectator-limit",
+    SCORE_LIMIT = "score-limit"
+}
+
 export enum GamePlayerInfo {
     NAME = "name",
     SCORE = "score",

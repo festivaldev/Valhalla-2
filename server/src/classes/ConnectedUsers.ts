@@ -6,7 +6,7 @@ export default class ConnectedUsers {
 
     public static IDLE_TIMEOUT: number = 60 * 1000;
 
-    users: { [username: string]: User } = {}
+    users: { [nickname: string]: User } = {}
 
     maxUsers: number;
 

@@ -29,7 +29,6 @@ export default {
 		if (!SocketService.socket) return this.$router.replace("/login");
 		
 		this.$refs["navigation-view"].navigate("game-list");
-		this.refreshGameList();
 		
 		SocketService.$on("message", this.onMessage);
 
