@@ -1,6 +1,8 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 
+import SocketService from "@/scripts/SocketService"
+
 Vue.use(Router)
 
 const router = new Router({
@@ -19,6 +21,17 @@ const router = new Router({
 			}
 		}
 	]
+});
+
+router.beforeEach((to, from, next) => {
+	if (!SocketService.socket && to.path != "/login") {
+		return next({
+			path: "/login",
+			replace: true
+		});
+	}
+	
+	next();
 });
 
 export default router;
