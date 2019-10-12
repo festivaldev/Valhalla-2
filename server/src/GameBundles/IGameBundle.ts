@@ -7,6 +7,7 @@ export default interface IGameBundle {
 	bundleId: string;
 	version: string;
 	author: string;
+	route: string;
 	clientDir: string;
 	clientScript: string;
 	

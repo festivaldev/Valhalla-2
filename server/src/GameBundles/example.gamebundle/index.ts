@@ -14,6 +14,7 @@ export class ExampleGameBundle implements IGameBundle {
 	bundleId: string = "ml.festival.example";
 	version: string = "1.0";
 	author: string = "Team FESTIVAL";
+	route: string = "example";
 	clientDir: string = path.join(__dirname, "/client");
 	clientScript: string = path.join(this.clientDir, "client.js");
 	
@@ -23,6 +24,7 @@ export class ExampleGameBundle implements IGameBundle {
 			bundleId: this.bundleId,
 			version: this.version,
 			author: this.author,
+			route: this.route
 		}
 	}
 	
