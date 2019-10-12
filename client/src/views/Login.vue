@@ -103,7 +103,9 @@ export default {
 			this.isWorking = false;
 			
 			document.querySelector("script#game-scripts").setAttribute("src", `http://${this.serverAddress}/gameScripts.js?${new Date().getTime()}`);
-			this.$router.replace("/");
+			document.querySelector("script#game-scripts").onload = () => {
+				this.$router.replace("/");
+			}
 		},
 		onClose() {
 			SocketService.$off("open");
