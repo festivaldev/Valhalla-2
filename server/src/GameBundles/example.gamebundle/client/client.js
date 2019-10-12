@@ -6,7 +6,7 @@
  */
 
 (() => {
-	Object.assign(gameBundles["ExampleGameBundle"], {
+	Object.assign(window.gameBundles["ExampleGameBundle"], {
 		defaultGameOptions: {
 			scoreLimit: 8,
 			playerLimit: 10,
