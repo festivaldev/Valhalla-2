@@ -8,45 +8,43 @@
 			<MetroNavigationViewItem icon="more" content="Mehr" @click.native="showMoreMenu" />
 		</template>
 		
-		<MetroPage page-id="game-list">
-			<p>{{gameList}}</p>
-		</MetroPage>
+		<GameList ref="game-list" />
+		<CreateGame />
 	</MetroNavigationView>
 </template>
 
 <script>
-import axios from "axios"
-
 import SocketService from "@/scripts/SocketService"
-import { LongPollEvent, LongPollResponse, MessageType } from "@/scripts/Constants"
+import { MessageType } from "@/scripts/Constants"
+
+import GameList from "@/pages/GameList"
+import CreateGame from "@/pages/CreateGame"
 
 export default {
 	name: "Root",
+	components: {
+		GameList,
+		CreateGame
+	},
 	data: () => ({
-		gameList: []
+		gameList: [],
+		test: "ExampleGameBundle"
 	}),
 	mounted() {
 		if (!SocketService.socket) return this.$router.replace("/login");
 		
 		this.$refs["navigation-view"].navigate("game-list");
 		
-		SocketService.$on("message", this.onMessage);
+		// SocketService.$on("message", this.onMessage);
 
 	},
 	beforeDestroy() {
-		SocketService.$off("message", this.onMessage);
+		// SocketService.$off("message", this.onMessage);
 	},
 	methods: {
 		onMessage(message) {
-			console.log(message);
 			switch (message.type) {
 				case MessageType.GAME_EVENT:
-					switch (message.payload[LongPollResponse.EVENT]) {
-						case LongPollEvent.GAME_LIST_REFRESH:
-							this.refreshGameList();
-							break;
-						default: break;
-					}
 					break;
 				case MessageType.GAME_PLAYER_EVENT:
 					break;
@@ -56,37 +54,30 @@ export default {
 			}
 		},
 		showMoreMenu(e) {
+			let test = "ExampleGameBundle";
+			
 			let flyout = new metroUI.MenuFlyout({
 				items: [{
 					icon: "game",
 					text: "Spiel erstellen",
-					action: this.createGame
+					action: () => {
+						this.$refs["navigation-view"].navigate("create-game");
+					}
 				}, {
 					icon: "refresh",
 					text: "Aktualisieren",
-					action: this.refreshGameList
+					action: () => {
+						this.$refs["game-list"].refreshGameList();
+					}
 				}]
 			});
 			
 			flyout.showAt(e.target);
-		},
-		
-		createGame() {
-			SocketService.emit({
-				type: "create-game",
-				payload: {
-					gameBundle: "ExampleGameBundle"
-				}
-			});
-		},
-		startGame() {
-			// this.socket.emit("message", {
-			// 	type: "start-game"
-			// });
-		},
-		
-		async refreshGameList() {
-			this.gameList = await axios.get(`${SocketService.url}/gamelist`).then(response => response.data);
+		}
+	},
+	computed: {
+		gameBundles() {
+			return window.gameBundles;
 		}
 	}
 }

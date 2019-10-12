@@ -10,8 +10,7 @@
 		defaultGameOptions: {
 			scoreLimit: 8,
 			playerLimit: 10,
-			spectatorLimit: 10,
-			blankCardLimit: 0
+			spectatorLimit: 10
 		},
 		test: () => {
 			console.log("test");
