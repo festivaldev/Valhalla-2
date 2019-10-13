@@ -11,28 +11,18 @@ const resolveUrl = (baseUrl, url) => {
 
 const TemplateContext = class {
 	component = null;
-	element = null;
+	rawHTML = "";
 
-	constructor(component, element) {
+	constructor(component, rawHTML) {
 		this.component = component;
-		this.element = element
+		this.rawHTML = rawHTML;
 	}
 	
 	get content() {
-		return this.element.innerHTML;
+		return this.rawHTML;
 	}
 	set content(content) {
-		this.element.innerHTML = content;
-	}
-	get rootElement() {
-		let topLevelElement = this.element;
-		if ("firstElementChild" in topLevelElement) return topLevelElement.firstElementChild;
-		
-		for (let child in topLevelElement.children) {
-			if (child.nodeType === Node.ELEMENT_NODE) return child;
-		}
-		
-		return null;
+		this.rawHTML = content;
 	}
 	compile() {
 		return Promise.resolve();
@@ -200,7 +190,7 @@ const Component = class {
 			[...htmlDocument.body.children].forEach(child => {
 				switch (child.nodeName) {
 					case "TEMPLATE":
-						this.template = new TemplateContext(this, child);
+						this.template = new TemplateContext(this, response.data.match(/\<template\>([\s\S]+?)\<\/template\>/gm)[0].replace(/<\/?template>/g, ""));
 						break;
 					case "SCRIPT":
 						this.script = new ScriptContext(this, child);
@@ -281,7 +271,6 @@ HTTPVueLoader.load = async (url, name) => {
 	let component = new Component(name);
 	return await component.load(url)
 		.then(component => {
-			console.log("34567");
 			return component;
 		})
 		.then(component => {
