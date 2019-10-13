@@ -10,7 +10,8 @@
 		defaultGameOptions: {
 			scoreLimit: 8,
 			playerLimit: 10,
-			spectatorLimit: 10
+			spectatorLimit: 10,
+			exampleProperty: true
 		},
 		test: () => {
 			console.log("test");

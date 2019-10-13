@@ -3,10 +3,16 @@ import GameOptions from "../../classes/GameOptions";
 export default class ExampleGameOptions extends GameOptions {
 	public exampleProperty: boolean = true;
 	
-	public serialize(): Object {
-		let info: {[key: string]: any} = super.serialize();
+	public update(newOptions: ExampleGameOptions) {
+		super.update(newOptions);
 		
-		info["example-property"] = this.exampleProperty;
+		this.exampleProperty = newOptions.exampleProperty
+	}
+	
+	public serialize(includePassword: boolean = false): Object {
+		let info: {[key: string]: any} = super.serialize(includePassword);
+		
+		info.exampleProperty = this.exampleProperty;
 		
 		return info;
 	}
@@ -15,7 +21,7 @@ export default class ExampleGameOptions extends GameOptions {
 		let options: ExampleGameOptions = super.deserialize(text) as ExampleGameOptions;
 		let json = JSON.parse(text);
 		
-		options.exampleProperty = json["example-property"]
+		options.exampleProperty = json.exampleProperty;
 		
 		return options;
 	}

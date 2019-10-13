@@ -33,11 +33,12 @@ export default class GameOptions {
 		if (!text || !text.length) return options;
 		
 		let json = JSON.parse(text);
+		console.log(json);
 		
-		options.playerLimit = json[GameOptionData.PLAYER_LIMIT];
-		options.spectatorLimit = json[GameOptionData.SPECTATOR_LIMIT];
-		options.scoreGoal = json[GameOptionData.SCORE_LIMIT];
-		options.password = json[GameOptionData.PASSWORD];
+		options.playerLimit = parseInt(json[GameOptionData.PLAYER_LIMIT]) || options.playerLimit;
+		options.spectatorLimit = parseInt(json[GameOptionData.SPECTATOR_LIMIT]) || options.spectatorLimit;
+		options.scoreGoal = parseInt(json[GameOptionData.SCORE_LIMIT]) || options.scoreGoal;
+		options.password = json[GameOptionData.PASSWORD] || options.password;
 		
 		return options;
 	}
