@@ -37,6 +37,8 @@ export default class GameManager {
 		} catch (e) {
 			Logger.log(e, LogLevel.Error);
 			this.destroyGame(game.getId());
+			
+			return null;
 		}
 		
 		this.broadcastGameListRefresh();
