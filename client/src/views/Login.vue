@@ -20,15 +20,15 @@
 						</div>
 						
 						<form novalidate class="mb-3">
-								<MetroStackPanel orientation="horizontal" vertical-alignment="bottom">
-									<MetroTextBox
-										header="Server-Adresse"
-										v-model="serverAddress"
-										placeholder="127.0.0.1"
-										:disabled="isWorking || socket != null"
-										@keyup.13="connect"
-									/>
-								</MetroStackPanel>
+							<MetroStackPanel orientation="horizontal" vertical-alignment="bottom">
+								<MetroTextBox
+									header="Server-Adresse"
+									v-model="serverAddress"
+									placeholder="127.0.0.1"
+									:disabled="isWorking || socket != null"
+									@keyup.13="connect"
+								/>
+							</MetroStackPanel>
 						</form>
 						
 						<form novalidate @submit.prevent>
@@ -39,7 +39,7 @@
 									v-model="username"
 									:disabled="isWorking || socket != null"
 									@input="$v.username.$touch()"
-									@keyup.13="login"
+									@keyup.13="connect"
 									style="margin-right: 8px"
 								/>
 								<MetroButton @click.prevent="connect()" :disabled="$v.serverAddress.$invalid || $v.username.$invalid || isWorking || socket != null">Verbinden</MetroButton>
