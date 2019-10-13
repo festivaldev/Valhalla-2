@@ -67,7 +67,8 @@ export default {
 		username: "",
 		
 		isWorking: false,
-		isConnecting: false
+		isConnecting: false,
+		hasError: false
 	}),
 	validations: {
 		serverAddress: { required },
@@ -92,20 +93,29 @@ export default {
 			SocketService.$on("message", this.onMessage);
 			
 			this.isWorking = true;
+			this.hasError = false;
 			SocketService.connect(`http://${this.serverAddress}`, {
 				query: `username=${this.username}`,
 			});
 		},
 		
-		onOpen() {
-			this.socket = SocketService.socket;
-			
-			this.isWorking = false;
-			
-			document.querySelector("script#game-scripts").setAttribute("src", `http://${this.serverAddress}/gameScripts.js?${new Date().getTime()}`);
-			document.querySelector("script#game-scripts").onload = () => {
-				this.$router.replace("/");
-			}
+		onOpen() {			
+			this.$nextTick(() => {
+				document.querySelector("script#game-scripts").remove();
+				
+				let scriptTag = document.createElement("script");
+				scriptTag.setAttribute("id", "game-scripts");
+				scriptTag.setAttribute("src", `http://${this.serverAddress}/gameScripts.js?${new Date().getTime()}`);
+				scriptTag.onload = () => {
+					if (this.hasError) return;
+					this.socket = SocketService.socket;
+					this.isWorking = false;
+					
+					this.$router.replace("/");
+				}
+				
+				document.head.appendChild(scriptTag);
+			});
 		},
 		onClose() {
 			SocketService.$off("open");
@@ -114,10 +124,10 @@ export default {
 			SocketService.$off("message");
 			
 			this.socket = null;
-			this.$router.replace("/login");
+			if (this.$route.path !== "/login") this.$router.replace("/login");
 		},
 		async onError(error) {
-			this.isWorking = false;
+			this.hasError = true;
 			
 			let dialog = new metroUI.ContentDialog({
 				title: "Verbindungsfehler",
@@ -126,6 +136,7 @@ export default {
 			});
 			
 			if (await dialog.showAsync()) {
+				this.isWorking = false;
 				this.socket = null;
 			}
 		},

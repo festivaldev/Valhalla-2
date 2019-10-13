@@ -28,10 +28,14 @@ export default new Vue({
 		},
 		onClose(event) {
 			this.url = null;
+			this.socket = null;
+			
 			this.$emit("close", event);
 		},
 		onError(error) {
 			this.url = null;
+			this.socket = null;
+			
 			this.$emit("error", JSON.parse(error));
 		},
 		onMessage(data) {
