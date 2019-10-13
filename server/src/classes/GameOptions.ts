@@ -33,7 +33,6 @@ export default class GameOptions {
 		if (!text || !text.length) return options;
 		
 		let json = JSON.parse(text);
-		console.log(json);
 		
 		options.playerLimit = parseInt(json[GameOptionData.PLAYER_LIMIT]) || options.playerLimit;
 		options.spectatorLimit = parseInt(json[GameOptionData.SPECTATOR_LIMIT]) || options.spectatorLimit;

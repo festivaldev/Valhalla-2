@@ -62,10 +62,19 @@ export default class SocketServer {
 		
 		switch (messageData.type) {
 			case "create-game":
-				this.gameServer.getGameManager().createGameWithPlayer(user, this.httpServer.gameBundles[messageData.payload["gameBundle"]]);
+				let game = this.gameServer.getGameManager().createGameWithPlayer(user, this.httpServer.gameBundles[messageData.payload["gameBundle"]]);
+				
+				if (game) {
+					game.updateGameSettings(this.httpServer.gameBundles[messageData.payload["gameBundle"]].getOptions().deserialize(messageData.payload["gameOptions"]));
+				
+				}
 				break;
 			case "start-game":
 				user.getGame().start();
+				break;
+			case "leave-game":
+				user.getGame().removePlayer(user);
+				break;
 			default: break;
 		}
 	}

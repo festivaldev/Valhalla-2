@@ -1,5 +1,6 @@
 import useragent, { Agent } from "useragent"
 import Game from "./Game";
+import { MessageType, LongPollResponse, LongPollEvent } from "./Constants";
 
 export default class User {
 	private nickname: string;
@@ -113,7 +114,14 @@ export default class User {
             throw new Error("User is already in a game");
         }
         
-        this.currentGame = game;
+		this.currentGame = game;
+		this.emitMessage({
+			type: MessageType.GAME_PLAYER_EVENT,
+			payload: {
+				[LongPollResponse.EVENT]: LongPollEvent.GAME_JOIN,
+				[LongPollResponse.GAME_INFO]: game.getInfo()
+			}
+		});
     }
 
     leaveGame(game: Game) {

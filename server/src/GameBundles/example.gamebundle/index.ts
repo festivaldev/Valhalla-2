@@ -20,6 +20,7 @@ export class ExampleGameBundle implements IGameBundle {
 	
 	getInfo(): Object {
 		return {
+			name: this.constructor.name,
 			displayName: this.displayName,
 			bundleId: this.bundleId,
 			version: this.version,

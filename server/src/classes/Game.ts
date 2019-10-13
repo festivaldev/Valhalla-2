@@ -40,8 +40,6 @@ export default class Game {
 			// TODO: Enforce Player Limit
 		}
 		
-		user.joinGame(this);
-		
 		let player: Player = new Player(user);
 		this.players.push(player);
 		
@@ -49,6 +47,7 @@ export default class Game {
 			this.host = player;
 		}
 		
+		user.joinGame(this);
 		this.gameLogic.handlePlayerJoin(player);
 		
 		this.broadcastToPlayers(MessageType.GAME_PLAYER_EVENT, {
@@ -171,6 +170,7 @@ export default class Game {
 			[GameInfo.ID]: this.id,
 			[GameInfo.CREATED]: this.created,
 			[GameInfo.HOST]: this.host.getUser().getNickname(),
+			[GameInfo.GAME_BUNDLE]: this.gameBundle.getInfo(),
 			[GameInfo.GAME_OPTIONS]: this.options.serialize(includePassword),
 			[GameInfo.HAS_PASSWORD]: this.options.password != null && this.options.password.length,
 			[GameInfo.PLAYERS]: this.players.map(player => player.getUser().getNickname()),

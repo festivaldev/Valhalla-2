@@ -1,5 +1,5 @@
 <template>
-	<MetroNavigationView pane-display-mode="top" pane-title="fuck" ref="navigation-view" show>
+	<MetroNavigationView pane-display-mode="top" pane-title="fuck" ref="navigation-view">
 		<template slot="menu-items">
 			<MetroNavigationViewItem content="Spiele" page-id="game-list" />
 		</template>
@@ -19,7 +19,7 @@ import { MessageType } from "@/scripts/Constants"
 
 import GameList from "@/pages/GameList"
 import CreateGame from "@/pages/CreateGame"
-import { LongPollResponse, LongPollEvent } from '@/scripts/Constants'
+import { GameInfo, LongPollResponse, LongPollEvent } from '@/scripts/Constants'
 
 export default {
 	name: "Root",
@@ -48,8 +48,9 @@ export default {
 					break;
 				case MessageType.GAME_PLAYER_EVENT:
 					switch (message.payload[LongPollResponse.EVENT]) {
-						case LongPollEvent.GAME_PLAYER_JOIN:
-							console.log("joined game");
+						case LongPollEvent.GAME_JOIN:
+							window.currentGame = message.payload[LongPollResponse.GAME_INFO];
+							this.$router.push(`/game/${message.payload[LongPollResponse.GAME_INFO][GameInfo.ID]}`)
 							break;
 						default: break;
 					}

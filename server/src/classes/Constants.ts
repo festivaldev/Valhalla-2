@@ -48,7 +48,8 @@ export enum ErrorCode {
 export enum GameInfo {
     CREATED = "created",
     HOST = "host",
-    ID = "id",
+	ID = "id",
+	GAME_BUNDLE = "game-bundle",
     GAME_OPTIONS = "game-options",
     HAS_PASSWORD = "has-password",
     PLAYERS = "players",
@@ -73,6 +74,7 @@ export enum LongPollEvent {
     BANNED = "banned",
 	CHAT = "chat",
 	GAME_JOIN = "game-join",
+	GAME_LEAVE = "game-leave",
     GAME_LIST_REFRESH = "game-list-refresh",
     GAME_OPTIONS_CHANGED = "game-options-changed",
     GAME_PLAYER_INFO_CHANGE = "game-player-info-change",

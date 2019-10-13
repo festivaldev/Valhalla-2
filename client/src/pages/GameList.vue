@@ -43,7 +43,6 @@ export default {
 		},
 		async refreshGameList() {
 			this.gameList = await axios.get(`${SocketService.url}/gamelist`).then(response => response.data);
-			console.log(this.gameList);
 		}
 	}
 }
