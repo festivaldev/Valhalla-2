@@ -190,7 +190,7 @@ const Component = class {
 			[...htmlDocument.body.children].forEach(child => {
 				switch (child.nodeName) {
 					case "TEMPLATE":
-						this.template = new TemplateContext(this, response.data.match(/\<template\>([\s\S]+?)\<\/template\>/gm)[0].replace(/<\/?template>/g, ""));
+						this.template = new TemplateContext(this, response.data.match(/\<template\>([\s\S]+?)\<\/template\>/gm)[0].replace(/^<template>/, "").replace(/<\/template>$/, ""));
 						break;
 					case "SCRIPT":
 						this.script = new ScriptContext(this, child);
