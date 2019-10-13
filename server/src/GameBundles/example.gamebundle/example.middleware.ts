@@ -12,4 +12,8 @@ router.get("/createGame.html", (req, res, next) => {
 	res.status(httpStatus.OK).contentType("text/html").sendFile(path.join(__dirname, "client/createGame.html"));
 });
 
+router.get("/example.vue", (req, res, next) => {
+	res.status(httpStatus.OK).contentType("text/html").sendFile(path.join(__dirname, "client/example.vue"));
+});
+
 export default router;

@@ -8,6 +8,11 @@
 			<MetroNavigationViewItem icon="more" content="Mehr" @click.native="showMoreMenu" />
 		</template>
 		
+		<MetroPage page-id="test">
+			<template v-if="testComponent">
+				<component :is="testComponent" />
+			</template>
+		</MetroPage>
 		<GameList ref="game-list" />
 		<CreateGame />
 	</MetroNavigationView>
@@ -15,6 +20,7 @@
 
 <script>
 import SocketService from "@/scripts/SocketService"
+import HTTPVueLoader from "@/scripts/HTTPVueLoader"
 import { MessageType } from "@/scripts/Constants"
 
 import GameList from "@/pages/GameList"
@@ -28,18 +34,14 @@ export default {
 	},
 	data: () => ({
 		gameList: [],
-		test: "ExampleGameBundle"
+		testComponent: null
 	}),
-	mounted() {
+	async mounted() {
 		if (!SocketService.socket) return this.$router.replace("/login");
 		
-		this.$refs["navigation-view"].navigate("game-list");
+		this.$refs["navigation-view"].navigate("test");
 		
-		// SocketService.$on("message", this.onMessage);
-
-	},
-	beforeDestroy() {
-		// SocketService.$off("message", this.onMessage);
+		this.testComponent = await HTTPVueLoader.load(`${SocketService.url}/example/example.vue`, "test");
 	},
 	methods: {
 		onMessage(message) {
