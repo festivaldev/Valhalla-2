@@ -8,12 +8,8 @@ router.get("/test", (req: Request, res: Response, next: NextFunction) => {
     res.status(httpStatus.OK).send("OK");
 });
 
-router.get("/createGame.html", (req, res, next) => {
-	res.status(httpStatus.OK).contentType("text/html").sendFile(path.join(__dirname, "client/createGame.html"));
-});
-
-router.get("/example.vue", (req, res, next) => {
-	res.status(httpStatus.OK).contentType("text/html").sendFile(path.join(__dirname, "client/example.vue"));
+router.get("/createGame.vue", (req, res, next) => {
+	res.status(httpStatus.OK).contentType("text/plain").sendFile(path.join(__dirname, "client/createGame.vue"));
 });
 
 export default router;

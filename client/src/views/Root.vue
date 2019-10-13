@@ -7,12 +7,7 @@
 		<template slot="pane-footer">
 			<MetroNavigationViewItem icon="more" content="Mehr" @click.native="showMoreMenu" />
 		</template>
-		
-		<MetroPage page-id="test">
-			<template v-if="testComponent">
-				<component :is="testComponent" />
-			</template>
-		</MetroPage>
+	
 		<GameList ref="game-list" />
 		<CreateGame />
 	</MetroNavigationView>
@@ -20,7 +15,6 @@
 
 <script>
 import SocketService from "@/scripts/SocketService"
-import HTTPVueLoader from "@/scripts/HTTPVueLoader"
 import { MessageType } from "@/scripts/Constants"
 
 import GameList from "@/pages/GameList"
@@ -39,9 +33,7 @@ export default {
 	async mounted() {
 		if (!SocketService.socket) return this.$router.replace("/login");
 		
-		this.$refs["navigation-view"].navigate("test");
-		
-		this.testComponent = await HTTPVueLoader.load(`${SocketService.url}/example/example.vue`, "test");
+		this.$refs["navigation-view"].navigate("game-list");
 	},
 	methods: {
 		onMessage(message) {

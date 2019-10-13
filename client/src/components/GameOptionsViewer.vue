@@ -8,6 +8,7 @@
 import axios from "axios"
 
 import SocketService from "@/scripts/SocketService"
+import HTTPVueLoader from "@/scripts/HTTPVueLoader"
 
 export default {
 	name: "GameOptionsViewer",
@@ -22,22 +23,13 @@ export default {
 		gameBundleOptionsURL() {
 			if (!this.gameBundle) return;
 			
-			return `${SocketService.url}/${this.gameBundle.route}/createGame.html`;
+			return `${SocketService.url}/${this.gameBundle.route}/createGame.vue`;
 		}
 	},
 	watch: {
 		gameBundle: async function (newBundle, oldBundle) {
 			this.childComponent = null;
-			let htmlText = await axios.get(this.gameBundleOptionsURL).then(response => response.data);
-			
-			this.childComponent = {
-				template: htmlText,
-				data: () => ({
-					delegate: this.$parent.$parent,
-					gameBundle: this.gameBundle,
-					gameOptions: this.gameOptions
-				})
-			}
+			this.childComponent = await HTTPVueLoader.load(this.gameBundleOptionsURL, "gameBundleOptions");
 		}
 	}
 }

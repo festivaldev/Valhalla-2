@@ -7,12 +7,14 @@
 			<GameOptionsViewer :game-bundle="this.gameBundles[selectedGameBundle]" :game-options="gameOptions" />
 			<p>{{gameOptions}}</p>
 
-			<MetroButton :disabled="!selectedGameBundle">Spiel erstellen</MetroButton>
+			<MetroButton :disabled="!selectedGameBundle" @click="createGame">Spiel erstellen</MetroButton>
 		</template>
 	</MetroPage>
 </template>
 
 <script>
+import SocketService from "@/scripts/SocketService"
+
 import GameOptionsViewer from "@/components/GameOptionsViewer"
 
 export default {
@@ -27,6 +29,15 @@ export default {
 	methods: {
 		gameBundleSelected() {
 			this.gameOptions = {...this.gameBundles[this.selectedGameBundle].defaultGameOptions}
+		},
+		createGame() {
+			SocketService.emit({
+				type: "create-game",
+				payload: {
+					gameBundle: this.selectedGameBundle,
+					gameOptions: JSON.stringify(this.gameOptions)
+				}
+			});
 		}
 	},
 	computed: {
