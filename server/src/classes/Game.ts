@@ -5,7 +5,7 @@ import GameManager from "./GameManager";
 import IGameBundle from "../GameBundles/IGameBundle";
 import IGameLogic from "../GameBundles/IGameLogic";
 import Logger from "../util/Logger";
-import { LongPollEvent, LongPollResponse, MessageType, GameInfo, GamePlayerInfo } from "./Constants";
+import { LongPollEvent, LongPollResponse, MessageType, GameInfo, GamePlayerInfo, ErrorCode } from "./Constants";
 import GameOptions from "./GameOptions";
 
 export default class Game {
@@ -33,11 +33,11 @@ export default class Game {
 		this.options = gameBundle.getOptions();
 	}
 
-	public addPlayer(user: User) {
+	public addPlayer(user: User): ErrorCode {
 		Logger.log(`${user} has joined game ${this.id}`);
 
 		if (this.options.playerLimit >= 3 && this.players.length >= this.options.playerLimit) {
-			// TODO: Enforce Player Limit
+			return ErrorCode.GAME_FULL
 		}
 		
 		let player: Player = new Player(user);
@@ -47,13 +47,17 @@ export default class Game {
 			this.host = player;
 		}
 		
-		user.joinGame(this);
+		let errorCode: ErrorCode = user.joinGame(this);
+		if (null != errorCode) return errorCode;
+		
 		this.gameLogic.handlePlayerJoin(player);
 		
 		this.broadcastToPlayers(MessageType.GAME_PLAYER_EVENT, {
 			[LongPollResponse.EVENT]: LongPollEvent.GAME_PLAYER_JOIN,
 			[LongPollResponse.NICKNAME]: user.getNickname()
 		});
+		
+		return null;
 	}
 
 	public removePlayer(user: User): boolean {

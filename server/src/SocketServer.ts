@@ -61,14 +61,46 @@ export default class SocketServer {
 		let user = this.gameServer.getConnectedUsers().getUser(socket.handshake.query["username"]);
 		
 		switch (messageData.type) {
-			case "create-game":
+			case "create-game": {
 				let game = this.gameServer.getGameManager().createGameWithPlayer(user, this.httpServer.gameBundles[messageData.payload["gameBundle"]]);
 				
 				if (game) {
 					game.updateGameSettings(this.httpServer.gameBundles[messageData.payload["gameBundle"]].getOptions().deserialize(messageData.payload["gameOptions"]));
 				
+					console.log(game);
 				}
 				break;
+			}
+			case "join-game": {
+				let game = this.gameServer.getGameManager().getGame(messageData.payload["gameId"]);
+				
+				if (!game) return socket.emit("message", {
+					type: LongPollResponse.ERROR,
+					[LongPollResponse.ERROR_CODE]: ErrorCode.INVALID_GAME
+				});
+				
+				let gamePassword = game.getPassword();
+				let password = messageData.payload["password"];
+				
+				if (gamePassword && gamePassword.length && !user.isAdmin()) {
+					if (!password || password !== gamePassword) {
+						return socket.emit("message", {
+							type: LongPollResponse.ERROR,
+							[LongPollResponse.ERROR_CODE]: ErrorCode.WRONG_PASSWORD
+						});
+					}
+				}
+				
+				let errorCode: ErrorCode = game.addPlayer(user);
+				
+				if (null == errorCode) {} else {
+					return socket.emit("message", {
+						type: LongPollResponse.ERROR,
+						[LongPollResponse.ERROR_CODE]: errorCode
+					});
+				}
+				break;
+			}
 			case "start-game":
 				user.getGame().start();
 				break;

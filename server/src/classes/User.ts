@@ -1,6 +1,6 @@
 import useragent, { Agent } from "useragent"
 import Game from "./Game";
-import { MessageType, LongPollResponse, LongPollEvent } from "./Constants";
+import { MessageType, LongPollResponse, LongPollEvent, ErrorCode } from "./Constants";
 
 export default class User {
 	private nickname: string;
@@ -109,9 +109,9 @@ export default class User {
         return this.currentGame;
     }
 
-    joinGame(game: Game) {
+    joinGame(game: Game): ErrorCode {
         if (this.currentGame != null) {
-            throw new Error("User is already in a game");
+            return ErrorCode.CANNOT_JOIN_ANOTHER_GAME;
         }
         
 		this.currentGame = game;
