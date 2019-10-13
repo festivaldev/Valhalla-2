@@ -267,7 +267,7 @@ HTTPVueLoader.identity = (value) => {
 	return value;
 };
 
-HTTPVueLoader.load = async (url, name) => {
+HTTPVueLoader.load = async (url, name, data) => {
 	let component = new Component(name);
 	return await component.load(url)
 		.then(component => {
@@ -281,6 +281,12 @@ HTTPVueLoader.load = async (url, name) => {
 			if (component.template) exports.template = component.template.content;
 			if (!exports.name && component.name) exports.name = component.name;
 			exports._baseUri = component.baseUri;
+			
+			if (exports.data && data) {
+				let _data = exports.data();
+				
+				exports.data = () => data(_data);
+			}
 			
 			return exports
 		})
