@@ -17,6 +17,8 @@ export default {
 	}),
 	mounted() {
 		SocketService.$on("message", this.onMessage);
+		
+		this.refreshGameList();
 	},
 	beforeDestroy() {
 		SocketService.$off("message", this.onMessage);
