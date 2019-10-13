@@ -71,7 +71,8 @@ export enum GamePlayerInfo {
 
 export enum LongPollEvent {
     BANNED = "banned",
-    CHAT = "chat",
+	CHAT = "chat",
+	GAME_JOIN = "game-join",
     GAME_LIST_REFRESH = "game-list-refresh",
     GAME_OPTIONS_CHANGED = "game-options-changed",
     GAME_PLAYER_INFO_CHANGE = "game-player-info-change",

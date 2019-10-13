@@ -19,6 +19,7 @@ import { MessageType } from "@/scripts/Constants"
 
 import GameList from "@/pages/GameList"
 import CreateGame from "@/pages/CreateGame"
+import { LongPollResponse, LongPollEvent } from '@/scripts/Constants'
 
 export default {
 	name: "Root",
@@ -32,15 +33,26 @@ export default {
 	}),
 	async mounted() {
 		if (!SocketService.socket) return this.$router.replace("/login");
+		SocketService.$on("message", this.onMessage);
 		
 		this.$refs["navigation-view"].navigate("game-list");
 	},
+	beforeDestroy() {
+		SocketService.$off("message", this.onMessage);
+	},
 	methods: {
 		onMessage(message) {
+			console.log(message);
 			switch (message.type) {
 				case MessageType.GAME_EVENT:
 					break;
 				case MessageType.GAME_PLAYER_EVENT:
+					switch (message.payload[LongPollResponse.EVENT]) {
+						case LongPollEvent.GAME_PLAYER_JOIN:
+							console.log("joined game");
+							break;
+						default: break;
+					}
 					break;
 				case MessageType.PLAYER_EVENT:
 					break;

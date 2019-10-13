@@ -19,6 +19,11 @@ const router = new Router({
 			meta: {
 				noAuth: true
 			}
+		},
+		{
+			path: '/game/:gameId',
+			name: 'game',
+			component: () => import(/*webpackChunkName: "game" */ './views/Game.vue')
 		}
 	]
 });
