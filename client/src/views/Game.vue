@@ -13,6 +13,8 @@ export default {
 		childComponent: null
 	}),
 	async beforeRouteLeave(to, from, next) {
+		if (!SocketService.socket) return next();
+		
 		let dialog = new metroUI.ContentDialog({
 			title: "Spiel verlassen?",
 			content: "Möchtest du das Spiel wirklich verlassen? Dein Fortschritt geht dabei verloren.",
