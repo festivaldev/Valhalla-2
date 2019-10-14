@@ -26,12 +26,11 @@
 									v-model="serverAddress"
 									placeholder="127.0.0.1"
 									:disabled="isWorking || socket != null"
-									@keyup.13="connect"
 								/>
 							</MetroStackPanel>
 						</form>
 						
-						<form novalidate @submit.prevent>
+						<div>
 							<MetroStackPanel orientation="horizontal" vertical-alignment="bottom">
 								<MetroTextBox
 									header="Benutzername"
@@ -42,9 +41,9 @@
 									@keyup.13="connect"
 									style="margin-right: 8px"
 								/>
-								<MetroButton @click.prevent="connect()" :disabled="$v.serverAddress.$invalid || $v.username.$invalid || isWorking || socket != null">Verbinden</MetroButton>
+								<MetroButton @click="connect()" :disabled="$v.serverAddress.$invalid || $v.username.$invalid || isWorking || socket != null">Verbinden</MetroButton>
 							</MetroStackPanel>
-						</form>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -93,7 +92,8 @@ export default {
 			SocketService.$on("message", this.onMessage);
 			
 			this.isWorking = true;
-			this.hasError = false;
+            this.hasError = false;
+            
 			SocketService.connect(`http://${this.serverAddress}`, {
 				query: `username=${this.username}`,
 			});

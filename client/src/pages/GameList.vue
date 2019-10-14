@@ -97,8 +97,7 @@ export default {
 				SocketService.emit({
 					type: "join-game",
 					payload: {
-						gameId: game.id,
-						password: dialog.password
+                        gameId: game.id,
 					}
 				});
 			}
