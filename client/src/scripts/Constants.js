@@ -119,5 +119,6 @@ export const MessageType = {
     PLAYER_EVENT: "player-event",
     GAME_EVENT: "game-event",
     GAME_PLAYER_EVENT: "game-player-event",
-    CHAT: "chat"
+	CHAT: "chat",
+	ERROR: "error"
 }

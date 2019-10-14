@@ -74,30 +74,36 @@ export default class SocketServer {
 			case "join-game": {
 				let game = this.gameServer.getGameManager().getGame(messageData.payload["gameId"]);
 				
-				if (!game) return socket.emit("message", {
-					type: LongPollResponse.ERROR,
+				if (!game) return socket.emit("message", JSON.stringify({
+					type: MessageType.ERROR,
+					payload: {
 					[LongPollResponse.ERROR_CODE]: ErrorCode.INVALID_GAME
-				});
+					}
+				}));
 				
 				let gamePassword = game.getPassword();
 				let password = messageData.payload["password"];
 				
 				if (gamePassword && gamePassword.length && !user.isAdmin()) {
 					if (!password || password !== gamePassword) {
-						return socket.emit("message", {
-							type: LongPollResponse.ERROR,
+						return socket.emit("message", JSON.stringify({
+							type: MessageType.ERROR,
+							payload: {
 							[LongPollResponse.ERROR_CODE]: ErrorCode.WRONG_PASSWORD
-						});
+							}
+						}));
 					}
 				}
 				
 				let errorCode: ErrorCode = game.addPlayer(user);
 				
 				if (null == errorCode) {} else {
-					return socket.emit("message", {
-						type: LongPollResponse.ERROR,
+					return socket.emit("message", JSON.stringify({
+						type: MessageType.ERROR,
+						payload: {
 						[LongPollResponse.ERROR_CODE]: errorCode
-					});
+						}
+					}));
 				}
 				break;
 			}
