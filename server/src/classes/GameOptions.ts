@@ -1,4 +1,5 @@
 import { GameOptionData } from "./Constants";
+import bcrypt from "bcryptjs";
 
 export default class GameOptions {
 	public playerLimit: number = 10;
@@ -37,7 +38,13 @@ export default class GameOptions {
 		options.playerLimit = parseInt(json[GameOptionData.PLAYER_LIMIT]) || options.playerLimit;
 		options.spectatorLimit = parseInt(json[GameOptionData.SPECTATOR_LIMIT]) || options.spectatorLimit;
 		options.scoreGoal = parseInt(json[GameOptionData.SCORE_LIMIT]) || options.scoreGoal;
-		options.password = json[GameOptionData.PASSWORD] || options.password;
+		
+		if (json[GameOptionData.PASSWORD]) {
+			let salt = bcrypt.genSaltSync(10);
+			let hashedPassword = bcrypt.hashSync(json[GameOptionData.PASSWORD], salt);
+			
+			options.password = hashedPassword;
+		}
 		
 		return options;
 	}

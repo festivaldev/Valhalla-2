@@ -4,6 +4,7 @@ import GameServer from "./classes/Server"
 import User from "./classes/User"
 import { DisconnectReason, ErrorCode, MessageType, LongPollResponse, LongPollEvent } from "./classes/Constants"
 import Logger from "./util/Logger"
+import bcrypt from "bcryptjs"
 
 export default class SocketServer {
 	httpServer: HTTPServer;
@@ -77,7 +78,7 @@ export default class SocketServer {
 				if (!game) return socket.emit("message", JSON.stringify({
 					type: MessageType.ERROR,
 					payload: {
-					[LongPollResponse.ERROR_CODE]: ErrorCode.INVALID_GAME
+						[LongPollResponse.ERROR_CODE]: ErrorCode.INVALID_GAME
 					}
 				}));
 				
@@ -85,11 +86,11 @@ export default class SocketServer {
 				let password = messageData.payload["password"];
 				
 				if (gamePassword && gamePassword.length && !user.isAdmin()) {
-					if (!password || password !== gamePassword) {
+					if (!password || !bcrypt.compareSync(password, gamePassword)) {
 						return socket.emit("message", JSON.stringify({
 							type: MessageType.ERROR,
 							payload: {
-							[LongPollResponse.ERROR_CODE]: ErrorCode.WRONG_PASSWORD
+								[LongPollResponse.ERROR_CODE]: ErrorCode.WRONG_PASSWORD
 							}
 						}));
 					}
@@ -101,7 +102,7 @@ export default class SocketServer {
 					return socket.emit("message", JSON.stringify({
 						type: MessageType.ERROR,
 						payload: {
-						[LongPollResponse.ERROR_CODE]: errorCode
+							[LongPollResponse.ERROR_CODE]: errorCode
 						}
 					}));
 				}

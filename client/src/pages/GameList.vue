@@ -19,7 +19,7 @@
 								<MetroTextBlock>Zuschauer: {{ local.gameInfo.spectators.length }} / {{ local.gameInfo["game-options"].spectatorLimit }}</MetroTextBlock>
 							</div>
 							<div class="col col-6" style=" display: flex; justify-content: flex-end; align-items: flex-end;">
-								<MetroSymbolIcon icon="shield" v-if="local.gameInfo['game-options']['has-password']" />
+								<MetroSymbolIcon icon="shield" v-if="local.gameInfo['has-password']" />
 							</div>
 						</div>
 					</MetroStackPanel>
@@ -31,6 +31,7 @@
 
 <script>
 import axios from "axios"
+import CryptoJS from "crypto-js"
 
 import SocketService from "@/scripts/SocketService"
 import { LongPollEvent, LongPollResponse, MessageType } from "@/scripts/Constants"
@@ -77,7 +78,7 @@ export default {
 					content: () => (
 						<div>
 							<MetroTextBlock style="margin-bottom: 8px">Gib das Passwort ein, um diesem Spiel beizutreten.</MetroTextBlock>
-							<MetroTextBox header="Passwort" placeholder-text="Benötigt" name="password" />
+							<MetroPasswordBox header="Passwort" placeholder-text="Benötigt" name="password" />
 						</div>
 					),
 					commands: [{ text: "Abbrechen" }, { text: "Spiel beitreten", primary: true }]
@@ -88,7 +89,7 @@ export default {
 						type: "join-game",
 						payload: {
 							gameId: game.id,
-							password: dialog.password
+							password: CryptoJS.SHA512(dialog.text.password).toString(CryptoJS.enc.Hex)
 						}
 					});
 				}

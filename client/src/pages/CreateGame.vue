@@ -1,18 +1,38 @@
 <template>
 	<MetroPage page-id="create-game">
 		<template v-if="this.gameBundles">
-			<MetroTextBlock text-style="sub-header">Neues Spiel</MetroTextBlock>
+			<MetroTextBlock text-style="title" style="margin-bottom: 8px">Neues Spiel</MetroTextBlock>
 			
-			<MetroComboBox placeholder-text="Spielmodul auswählen" :items-source="bundleItems" v-model="selectedGameBundle" @input="gameBundleSelected" />
-			<GameOptionsViewer :game-bundle="this.gameBundles[selectedGameBundle]" :game-options="gameOptions" />
-			<p>{{gameOptions}}</p>
+			<div class="row">
+				<div class="col col-12 col-md-3">
+					<MetroComboBox
+						header="Spielmodul"
+						placeholder-text="Spielmodul auswählen"
+						:items-source="bundleItems"
+						v-model="selectedGameBundle"
+						@input="gameBundleSelected"
+						style="margin-bottom: 8px"
+					/>
+					<MetroPasswordBox
+						header="Passwort"
+						placeholder-text="Optional"
+						v-model="gameOptions.password"
+						style="margin-bottom: 8px"
+					/>
+					
+					<GameOptionsViewer :game-bundle="this.gameBundles[selectedGameBundle]" :game-options="gameOptions" />
+					<p>{{gameOptions}}</p>
 
-			<MetroButton :disabled="!selectedGameBundle" @click="createGame">Spiel erstellen</MetroButton>
+					<MetroButton :disabled="!selectedGameBundle" @click="createGame">Spiel erstellen</MetroButton>
+				</div>
+			</div>
 		</template>
 	</MetroPage>
 </template>
 
 <script>
+import CryptoJS from "crypto-js"
+
 import SocketService from "@/scripts/SocketService"
 
 import GameOptionsViewer from "@/components/GameOptionsViewer"
@@ -24,18 +44,26 @@ export default {
 	},
 	data: () => ({
 		selectedGameBundle: "",
-		gameOptions: {}
+		gameOptions: {
+			password: ""
+		}
 	}),
 	methods: {
 		gameBundleSelected() {
-			this.gameOptions = {...this.gameBundles[this.selectedGameBundle].defaultGameOptions}
+			this.gameOptions = {
+				...this.gameBundles[this.selectedGameBundle].defaultGameOptions,
+				password: this.gameOptions.password
+			}
 		},
 		createGame() {
 			SocketService.emit({
 				type: "create-game",
 				payload: {
 					gameBundle: this.selectedGameBundle,
-					gameOptions: JSON.stringify(this.gameOptions)
+					gameOptions: JSON.stringify({
+						...this.gameOptions,
+						password: this.gameOptions.password ? CryptoJS.SHA512(this.gameOptions.password).toString(CryptoJS.enc.Hex) : undefined
+					})
 				}
 			});
 		}
