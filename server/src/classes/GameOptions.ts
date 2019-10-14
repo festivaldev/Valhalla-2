@@ -4,13 +4,11 @@ import bcrypt from "bcryptjs";
 export default class GameOptions {
 	public playerLimit: number = 10;
 	public spectatorLimit: number = 10;
-	public scoreGoal: number = 8;
 	public password: string = "";
 	
 	public update(newOptions: GameOptions) {
 		this.playerLimit = newOptions.playerLimit;
 		this.spectatorLimit = newOptions.spectatorLimit;
-		this.scoreGoal = newOptions.scoreGoal;
 		this.password = newOptions.password;
 	}
 	
@@ -18,7 +16,6 @@ export default class GameOptions {
 		let info: {[key: string]: any} = {
 			[GameOptionData.PLAYER_LIMIT]: this.playerLimit,
 			[GameOptionData.SPECTATOR_LIMIT]: this.spectatorLimit,
-			[GameOptionData.SCORE_LIMIT]: this.scoreGoal
 		}
 		
 		if (includePassword) {
@@ -37,7 +34,6 @@ export default class GameOptions {
 		
 		options.playerLimit = parseInt(json[GameOptionData.PLAYER_LIMIT]) || options.playerLimit;
 		options.spectatorLimit = parseInt(json[GameOptionData.SPECTATOR_LIMIT]) || options.spectatorLimit;
-		options.scoreGoal = parseInt(json[GameOptionData.SCORE_LIMIT]) || options.scoreGoal;
 		
 		if (json[GameOptionData.PASSWORD]) {
 			let salt = bcrypt.genSaltSync(10);

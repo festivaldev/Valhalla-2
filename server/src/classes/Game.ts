@@ -216,7 +216,7 @@ export default class Game {
 		let started = this.gameLogic.handleGameStart();
 		
 		if (started) {
-			Logger.log(`Starting game ${this.getId()} with ${this.players.length} player(s) (of ${this.options.playerLimit}), ${this.spectators.length} spectator(s) (of ${this.options.spectatorLimit}) ${this.options.scoreGoal} score limit`);
+			Logger.log(`Starting game ${this.getId()} with ${this.players.length} player(s) (of ${this.options.playerLimit}), ${this.spectators.length} spectator(s) (of ${this.options.spectatorLimit})`);
 			
 			if (this.gameLogic.handleGameStartNextRound) {
 				this.gameLogic.handleGameStartNextRound();
