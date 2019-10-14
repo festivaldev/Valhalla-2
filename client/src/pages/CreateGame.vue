@@ -1,7 +1,7 @@
 <template>
 	<MetroPage page-id="create-game">
 		<template v-if="this.gameBundles">
-			<MetroTextBlock text-style="title" style="margin-bottom: 8px">Neues Spiel</MetroTextBlock>
+			<MetroTextBlock class="mb-3" text-style="sub-title">Neues Spiel</MetroTextBlock>
 			
 			<div class="row">
 				<div class="col col-12 col-md-3">
@@ -13,6 +13,7 @@
 						@input="gameBundleSelected"
 						style="margin-bottom: 8px"
 					/>
+					
 					<MetroPasswordBox
 						header="Passwort"
 						placeholder-text="Optional"
@@ -20,10 +21,26 @@
 						style="margin-bottom: 8px"
 					/>
 					
+					<MetroTextBlock class="mt-5 mb-3" text-style="sub-title">Spiel-Einstellungen</MetroTextBlock>
+					<MetroTextBox
+						header="Spieler-Limit"
+						:placeholder-text="gameOptions.playerLimit.toString()"
+						v-model.number="gameOptions.playerLimit"
+						:disabled="!selectedGameBundle"
+						style="margin-bottom: 8px"
+					/>
+					
+					<MetroTextBox
+						header="Zuschauer-Limit"
+						:placeholder-text="gameOptions.spectatorLimit.toString()"
+						v-model.number="gameOptions.spectatorLimit"
+						:disabled="!selectedGameBundle"
+						style="margin-bottom: 8px"
+					/>
+					
 					<GameOptionsViewer :game-bundle="this.gameBundles[selectedGameBundle]" :game-options="gameOptions" />
-					<p>{{gameOptions}}</p>
 
-					<MetroButton :disabled="!selectedGameBundle" @click="createGame">Spiel erstellen</MetroButton>
+					<MetroButton class="mt-3" :disabled="!selectedGameBundle" @click="createGame">Spiel erstellen</MetroButton>
 				</div>
 			</div>
 		</template>
@@ -43,10 +60,12 @@ export default {
 		GameOptionsViewer
 	},
 	data: () => ({
-		selectedGameBundle: "",
+		selectedGameBundle: null,
 		gameOptions: {
+			playerLimit: 0,
+			spectatorLimit: 0,
 			password: ""
-		}
+		},
 	}),
 	methods: {
 		gameBundleSelected() {
