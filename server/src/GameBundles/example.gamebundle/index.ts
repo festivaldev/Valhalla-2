@@ -32,7 +32,7 @@ export class ExampleGameBundle implements IGameBundle {
 	gameLogic: IGameLogic;
 	
 	constructor(expressApp: Express) {
-		expressApp.use("/example", Middleware);
+		expressApp.use(`/${this.route}`, Middleware);
 	}
 	
 	getOptions(): GameOptions {
