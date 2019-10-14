@@ -17,7 +17,7 @@ export default class HTTPServer {
 	gameBundles: { [bundleId: string] : IGameBundle } = {}
 	gameScripts: string = ""
 	
-	constructor(port: number = 8080, gameBundles: Object) {
+    constructor(port: number = 8080, gameBundles: Object) {
 		this.expressApp = express();
 		
 		this.expressApp.use(helmet());
