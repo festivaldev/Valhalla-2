@@ -35,7 +35,10 @@ export default class HTTPServer {
 			this.gameBundles[bundleId] = new bundleClass(this.expressApp);
 			
 			this.gameScripts += `window.gameBundles["${bundleId}"] = ${JSON.stringify(this.gameBundles[bundleId].getInfo())};\n\n`;
-			this.gameScripts += fs.readFileSync(this.gameBundles[bundleId].clientScript) + "\n\n";
+			
+			if (fs.existsSync(this.gameBundles[bundleId].clientScript)) {
+				this.gameScripts += fs.readFileSync(this.gameBundles[bundleId].clientScript) + "\n\n";
+			}
 		});
 		
 		this.expressApp.use("/gameScripts.js", (req, res, next) => {

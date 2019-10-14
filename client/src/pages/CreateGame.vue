@@ -70,6 +70,7 @@ export default {
 	methods: {
 		gameBundleSelected() {
 			this.gameOptions = {
+				...this.gameOptions,
 				...this.gameBundles[this.selectedGameBundle].defaultGameOptions,
 				password: this.gameOptions.password
 			}
