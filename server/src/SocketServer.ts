@@ -67,8 +67,6 @@ export default class SocketServer {
 				
 				if (game) {
 					game.updateGameSettings(this.httpServer.gameBundles[messageData.payload["gameBundle"]].getOptions().deserialize(messageData.payload["gameOptions"]));
-				
-					console.log(game);
 				}
 				break;
 			}
@@ -113,6 +111,9 @@ export default class SocketServer {
 				break;
 			case "leave-game":
 				user.getGame().removePlayer(user);
+				break;
+			case "game-event":
+				user.getGame().getGameLogic().handleMessage(MessageType.GAME_EVENT, messageData.payload);
 				break;
 			default: break;
 		}

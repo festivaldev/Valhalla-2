@@ -28,5 +28,9 @@ export default class ExampleGameLogic implements IGameLogic {
 		Logger.log(`Example game with id ${this.delegate.getId()} ended`, LogLevel.Warn);
 	}
 	
-	public handleMessage(type: MessageType, masterData: Object) {}
+	public handleMessage(type: MessageType, masterData: Object) {
+		this.delegate.broadcastToPlayers(MessageType.GAME_EVENT, {
+			fuck: "this"
+		});
+	}
 }

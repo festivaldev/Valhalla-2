@@ -6,6 +6,9 @@ export default new Vue({
 		url: null,
 		socket: null,
 	},
+	created() {
+		window.SocketService = this;
+	},
 	methods: {
 		connect(url, options) {
 			this.url = url;

@@ -185,6 +185,10 @@ export default class Game {
 	public getGameBundle(): IGameBundle {
 		return this.gameBundle;
 	}
+	
+	public getGameLogic(): IGameLogic {
+		return this.gameLogic;
+	}
 
 	public getAllPlayerInfo(): Array<Object> {
 		return this.players.map(player => this.getPlayerInfo(player));
