@@ -197,7 +197,7 @@ export default class Game {
 	public getPlayerInfo(player: Player): Object {
 		return {
 			[GamePlayerInfo.NAME]: player.getUser().getNickname(),
-			[GamePlayerInfo.SCORE]: player.getScore()
+			...this.gameBundle.getPlayerInfo(player)
 		}
 	}
 

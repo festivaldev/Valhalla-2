@@ -8,6 +8,7 @@ import ExampleGameLogic from "./ExampleGameLogic";
 import ExampleGameOptions from "./ExampleGameOptions";
 import Game from "../../classes/Game";
 import GameOptions from "../../classes/GameOptions";
+import Player from "../../classes/Player";
 
 export class ExampleGameBundle implements IGameBundle {
 	displayName: string = "Example Game Bundle";
@@ -37,6 +38,10 @@ export class ExampleGameBundle implements IGameBundle {
 	
 	getOptions(): GameOptions {
 		return new ExampleGameOptions();
+	}
+	
+	getPlayerInfo(player: Player): object {
+		return {};
 	}
 	
 	createGameLogicInstance(game: Game): ExampleGameLogic {
