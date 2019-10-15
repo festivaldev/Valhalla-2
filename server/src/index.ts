@@ -1,6 +1,8 @@
 import dotenv from "dotenv";
+import seedrandom from "seedrandom";
 
 dotenv.config();
+seedrandom((new Date().getTime().toString()), { global: true });
 
 import HTTPServer from "./HTTPServer";
 import SocketServer from "./SocketServer";

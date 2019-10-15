@@ -164,6 +164,10 @@ export default class Game {
 		return this.options.password;
 	}
 	
+	public getGameSettings(): GameOptions {
+		return this.options;
+	}
+	
 	public updateGameSettings(newOptions: GameOptions) {
 		this.options.update(newOptions);
 		this.notifyGameOptionsChanged();

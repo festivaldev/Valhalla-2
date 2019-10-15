@@ -6,4 +6,7 @@ declare global {
 			socketServer: SocketServer
 		}
 	}
+	interface Array<T> {
+		shuffle(): void
+	}
 }
