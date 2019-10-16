@@ -19,6 +19,10 @@ export default class WhiteCard {
 		return this.text;
 	}
 	
+	public setText(text: string) {
+		this.text = text;
+	}
+	
 	public getDeckId(): string {
 		return this.deckId;
 	}
@@ -36,7 +40,7 @@ export default class WhiteCard {
 		}
 	}
 	
-	public getFaceDownCardClientData(): object {
+	public static getFaceDownCardClientData(): object {
 		return {
 			id: "-1",
 			text: "",

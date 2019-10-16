@@ -1,10 +1,11 @@
 import WhiteCard from "./WhiteCard";
 import { Sequelize } from "sequelize";
 import CAHGameOptions from "../CAHGameOptions";
+import CardSet from "./CardSet";
 
 export default class WhiteDeck {
 	private database: Sequelize;
-	private cardSets: Array<string>;
+	private cardSets: Array<CardSet>;
 	private numBlanks: number;
 	
 	private deck: Array<WhiteCard> = [];
@@ -12,7 +13,7 @@ export default class WhiteDeck {
 	
 	private lastBlankCardId: number = -1;
 	
-	constructor(database: Sequelize, cardSets: Array<string>, numBlanks: number) {
+	constructor(database: Sequelize, cardSets: Array<CardSet>, numBlanks: number) {
 		this.database = database;
 		this.cardSets = cardSets;
 		this.numBlanks = numBlanks;
@@ -21,10 +22,10 @@ export default class WhiteDeck {
 	public async loadCards() {
 		return this.database.models.Response.findAll({
 			order: [["createdAt", "DESC"]]
-		}).then(responseList => {
+		}).then((responseList: Array<any>) => {
 			responseList.forEach(responseObj => {
 				// if (cardSets.indexOf(responseObj.get("deckId").toString()) >= 0) {
-					let card: WhiteCard = new WhiteCard(responseObj.get("id").toString(), responseObj.get("text").toString(), responseObj.get("deckId").toString());
+					let card: WhiteCard = new WhiteCard(responseObj["id"], responseObj["text"], responseObj["deckId"]);
 					this.deck.push(card);
 				// }
 			});
@@ -57,7 +58,7 @@ export default class WhiteDeck {
 		this._discard = [];
 	}
 	
-	public isBlankCard(card: WhiteCard): boolean {
+	public static isBlankCard(card: WhiteCard): boolean {
 		return card.isWriteIn();
 	}
 	

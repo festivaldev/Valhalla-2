@@ -70,16 +70,6 @@ export enum GamePlayerInfo {
     STATUS = "status"
 }
 
-export enum GamePlayerStatus {
-	HOST = "host",
-	IDLE = "idle",
-	JUDGE = "judge",
-	JUDGING = "judging",
-	PLAYING = "playing",
-	WINNER = "winner",
-	SPECTATOR = "spectator"
-}
-
 export enum LongPollEvent {
     BANNED = "banned",
 	CHAT = "chat",

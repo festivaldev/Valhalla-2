@@ -1,15 +1,16 @@
 import BlackCard from "./BlackCard";
 import { Sequelize } from "sequelize";
+import CardSet from "./CardSet";
 
 export default class BlackDeck {
 	private database: Sequelize;
-	private cardSets: Array<string>;
+	private cardSets: Array<CardSet>;
 	
 	
 	private deck: Array<BlackCard> = [];
 	private _discard: Array<BlackCard> = [];
 	
-	constructor(database: Sequelize, cardSets: Array<string>) {
+	constructor(database: Sequelize, cardSets: Array<CardSet>) {
 		this.database = database;
 		this.cardSets = cardSets
 	}
@@ -17,10 +18,10 @@ export default class BlackDeck {
 	public async loadCards() {
 		this.database.models.Call.findAll({
 			order: [["createdAt", "DESC"]]
-		}).then(callList => {
+		}).then((callList: Array<any>) => {
 			callList.forEach(callObj => {
 				// if (cardSets.indexOf(callObj.get("deckId").toString()) >= 0) {
-					let card: BlackCard = new BlackCard(callObj.get("id").toString(), callObj.get("text").toString(), callObj.get("deckId").toString());
+					let card: BlackCard = new BlackCard(callObj["id"], callObj["text"], callObj["deckId"]);
 					this.deck.push(card);
 				// }
 			});

@@ -110,6 +110,6 @@ export class CAHGameBundle implements IGameBundle {
 	}
 	
 	createGameLogicInstance(game: Game): CAHGameLogic {
-		return new CAHGameLogic(game);
+		return new CAHGameLogic(game, this.database);
 	}
 }
