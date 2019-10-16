@@ -151,6 +151,14 @@ export default class Game {
 		
 		return this.host.getUser();
 	}
+	
+	public getHostPlayer(): Player {
+		if (this.host == null) {
+			return null;
+		}
+		
+		return this.host;
+	}
 
 	public getUsers(): Array<User> {
 		return this.playersToUsers();
@@ -197,7 +205,8 @@ export default class Game {
 	public getPlayerInfo(player: Player): Object {
 		return {
 			[GamePlayerInfo.NAME]: player.getUser().getNickname(),
-			...this.gameBundle.getPlayerInfo(player)
+			...this.gameBundle.getPlayerInfo(player),
+			...this.gameLogic.getPlayerInfo(player)
 		}
 	}
 
@@ -210,6 +219,10 @@ export default class Game {
 		users.concat(this.spectators);
 		
 		return users;
+	}
+	
+	public getGameManager(): GameManager {
+		return this.gameManager;
 	}
 	
 	public start(): boolean {
