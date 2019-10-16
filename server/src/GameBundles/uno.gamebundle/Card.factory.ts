@@ -1,3 +1,7 @@
+import { Blueprint } from "./models/Blueprint";
+import { Card } from "./models/Card";
+import { NumeralCard, DrawNumeralCard } from "./models/Cards";
+
 export class CardFactory {
 
     constructor(private options: CardFactoryOptions = CardFactoryOptions.Default) {}
@@ -18,14 +22,9 @@ export class CardFactoryOptions {
 
     public static Default: CardFactoryOptions;
 
-    public cardFrequencies: Record<CardAction, number> = {
-        [CardAction.None]: .5,
-        [CardAction.PlusNumber]: .5,
-    }
+    public cardBlueprints: Blueprint<Card>[] = [
+        { f: DrawNumeralCard.create, p: 50 },
+        { f: NumeralCard.create, p: 50 },
+    ];
 
-}
-
-export enum CardAction {
-    None,
-    PlusNumber,
 }
