@@ -33,7 +33,7 @@ export default class WhiteDeck {
 			for (var i = 0; i < this.numBlanks && i < CAHGameOptions.MAX_BLANK_CARD_LIMIT; i++) {
 				this.deck.push(new WhiteCard((--this.lastBlankCardId).toString(), "____", null, true));
 			}
-			console.log(this.deck);
+
 			this.deck.shuffle();
 			return Promise.resolve(this);
 		});

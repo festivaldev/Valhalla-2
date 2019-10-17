@@ -11,7 +11,8 @@
 			scoreLimit: 8,
 			playerLimit: 10,
 			spectatorLimit: 10,
-			blanksInDeck: 0
+			blanksInDeck: 0,
+			cardSets: []
 		},
 		startGame: () => {
 			

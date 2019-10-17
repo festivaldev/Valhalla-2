@@ -43,15 +43,16 @@ export default class CAHGameOptions extends GameOptions {
 		let options: CAHGameOptions = super.deserialize(text) as CAHGameOptions;
 		let json = JSON.parse(text);
 		
-		if (json.cardSets) {
-			let cardSetsParsed: Array<string> = json.cardSets.split(",");
-			cardSetsParsed.forEach(cardSetId => {
-				options.cardSetIds.push(cardSetId);
-			});
-		}
+		// if (json.cardSets) {
+		// 	let cardSetsParsed: Array<string> = json.cardSets.split(",");
+		// 	cardSetsParsed.forEach(cardSetId => {
+		// 		options.cardSetIds.push(cardSetId);
+		// 	});
+		// }
 		
 		options.blanksInDeck = Math.max(CAHGameOptions.MIN_BLANK_CARD_LIMIT, Math.min(CAHGameOptions.MAX_BLANK_CARD_LIMIT, parseInt(json.blanksLimit)));
 		options.scoreGoal = Math.max(CAHGameOptions.MIN_SCORE_LIMIT, Math.min(CAHGameOptions.MAX_SCORE_LIMIT, parseInt(json.scoreGoal)));
+		options.cardSetIds = json.cardSets || [];
 		
 		return options;
 	}

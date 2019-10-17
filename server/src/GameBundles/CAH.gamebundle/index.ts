@@ -104,9 +104,7 @@ export class CAHGameBundle implements IGameBundle {
 	}
 	
 	public getPlayerInfo(player: CAHPlayer): object {
-		return {
-			[GamePlayerInfo.SCORE]: player.getScore()
-		}
+		return {}
 	}
 	
 	createGameLogicInstance(game: Game): CAHGameLogic {

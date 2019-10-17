@@ -19,7 +19,7 @@ export default class ExampleGameLogic implements IGameLogic {
 		Logger.log(`${player.getUser().getNickname()} left example!`, LogLevel.Warn);
 	}
 	
-	public handleGameStart(): boolean {
+	public async handleGameStart(): Promise<boolean> {
 		Logger.log(`Starting example game with id ${this.delegate.getId()}`, LogLevel.Warn);
 		
 		return true;

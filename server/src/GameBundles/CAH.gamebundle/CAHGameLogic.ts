@@ -126,10 +126,10 @@ export default class CAHGameLogic implements IGameLogic {
 		}
 	}
 	
-	public handleGameStart(): boolean {
+	public async handleGameStart(): Promise<boolean> {
 		if (this.state != CAHGameState.LOBBY) return false;
-		if (!this.hasEnoughCards()) return false;
-		if (!this.start()) return false;
+		if (!(await this.hasEnoughCards())) return false;
+		if (!(await this.start())) return false;
 		
 		return true;
 	}
@@ -148,7 +148,10 @@ export default class CAHGameLogic implements IGameLogic {
 	}
 	
 	public getPlayerInfo(player: Player): object {
+		let cahPlayer: CAHPlayer = this.players.get(player);
+		
 		return {
+			[GamePlayerInfo.SCORE]: cahPlayer.getScore(),
 			[GamePlayerInfo.STATUS]: this.getPlayerStatus(player)
 		}
 	}
@@ -226,9 +229,9 @@ export default class CAHGameLogic implements IGameLogic {
 	public async hasEnoughCards(): Promise<boolean> {
 		let cardSets: Array<CardSet> = await this.loadCardSets();
 		
-		if (!cardSets.length) {
-			return false;
-		}
+		// if (!cardSets.length) {
+		// 	return false;
+		// }
 		
 		let tempBlackDeck: BlackDeck = await this.loadBlackDeck(cardSets);
 		if (tempBlackDeck.totalCount() < CAHGameLogic.MINIMUM_BLACK_CARDS) return false;
@@ -261,11 +264,17 @@ export default class CAHGameLogic implements IGameLogic {
 	}
 	
 	public async loadBlackDeck(cardSets: Array<CardSet>): Promise<BlackDeck> {
-		return await new BlackDeck(this.database, cardSets);
+		let blackDeck: BlackDeck = new BlackDeck(this.database, cardSets);
+		await blackDeck.loadCards();
+		
+		return blackDeck;
 	}
 	
 	public async loadWhiteDeck(cardSets: Array<CardSet>): Promise<WhiteDeck> {
-		return await new WhiteDeck(this.database, cardSets, (this.delegate.getGameSettings() as CAHGameOptions).blanksInDeck);
+		let whiteDeck: WhiteDeck = new WhiteDeck(this.database, cardSets, (this.delegate.getGameSettings() as CAHGameOptions).blanksInDeck);
+		await whiteDeck.loadCards();
+		
+		return whiteDeck;
 	}
 	
 	private getNextBlackCard(): BlackCard {
@@ -445,10 +454,10 @@ export default class CAHGameLogic implements IGameLogic {
 		let started: boolean = false;
 		
 		let numPlayers: number = this.players.size;
-		if (numPlayers >= 3) {
+		// if (numPlayers >= 3) {
 			this.judgeIndex = Math.floor(Math.random() * numPlayers);
 			started = true;
-		}
+		// }
 		
 		if (started) {
 			let _options = this.delegate.getGameSettings() as CAHGameOptions;
@@ -578,7 +587,7 @@ export default class CAHGameLogic implements IGameLogic {
 		}
 		
 		if (this.getJudge()) {
-			this.delegate.notifyPlayerInfoChange(this.getJudge());
+			this.delegate.notifyPlayerInfoChange(this.getJudge().getPlayer());
 		}
 		
 		this.delegate.broadcastToPlayers(MessageType.GAME_EVENT, {

@@ -13,7 +13,7 @@ export default interface IGameLogic {
 	handleSpectatorJoin?(user: User): void;
 	handleSpectatorLeave?(user: User): void;
 	
-	handleGameStart(user?: User): boolean;
+	handleGameStart(user?: User): Promise<boolean>;
 	handleGameStartNextRound?(user?: User): boolean;
 	handleGameRoundComplete?(): void;
 	handleGameEnd(): void;

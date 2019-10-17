@@ -16,7 +16,7 @@ export default class BlackDeck {
 	}
 	
 	public async loadCards() {
-		this.database.models.Call.findAll({
+		return this.database.models.Call.findAll({
 			order: [["createdAt", "DESC"]]
 		}).then((callList: Array<any>) => {
 			callList.forEach(callObj => {
