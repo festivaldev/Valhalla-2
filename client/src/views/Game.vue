@@ -1,11 +1,15 @@
 <template>
-	<component v-if="childComponent" :is="childComponent" ref="child-component" />
+	<MetroView view-id="main-view">
+		<MetroPage page-id="game">
+			<component v-if="childComponent" :is="childComponent" ref="child-component" />
+		</MetroPage>
+	</MetroView>
 </template>
 
 <script>
 import SocketService from "@/scripts/SocketService"
 import HTTPVueLoader from "@/scripts/HTTPVueLoader"
-import { GameInfo, MessageType } from '@/scripts/Constants'
+import { GameInfo, LongPollEvent, LongPollResponse, MessageType } from '@/scripts/Constants'
 
 export default {
 	name: "Game",
@@ -35,7 +39,12 @@ export default {
 		SocketService.$off("message", this.onMessage);
 	},
 	async mounted() {
-		this.childComponent = await HTTPVueLoader.load(this.gameBundleGameURL, "game");
+		this.childComponent = await HTTPVueLoader.load(this.gameBundleGameURL, "game", {
+			SocketService: SocketService,
+			MessageType: MessageType,
+			LongPollEvent: LongPollEvent,
+			LongPollResponse: LongPollResponse
+		});
 		
 		SocketService.$on("message", this.onMessage);
 	},
