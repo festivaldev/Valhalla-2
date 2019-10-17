@@ -19,6 +19,7 @@ export default class HTTPServer {
 	
 	constructor(port: number = 8080, gameBundles: Object) {
 		this.expressApp = express();
+		this.expressApp.set("json spaces", 4);
 		
 		this.expressApp.use(helmet());
 		this.expressApp.use(cors());
