@@ -8,17 +8,19 @@
 </template>
 
 <script>
+const SocketService = require("SocketService");
+
 module.exports = {
 	name: "ExampleCreateGame",
-	data: () => ({
-		SocketService: null
-	}),
 	methods: {
 		test() {
 			alert("Test");
 		}
 	},
 	computed: {
+		SocketService() {
+			return SocketService;
+		},
 		gameOptions() {
 			return this.$parent.gameOptions;
 		},
