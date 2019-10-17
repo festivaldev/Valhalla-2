@@ -92,17 +92,11 @@ export class CAHGameBundle implements IGameBundle {
 		
 		this.database.sequelize.sync();
 		
-		// (async () => {
-		// 	let test0 = await Promise.all(Array.prototype.concat(
-		// 		new BlackDeck(this.database.sequelize, []).loadCards(),
-		// 		new WhiteDeck(this.database.sequelize, [], 8).loadCards()
-		// 	));
-			
-		// 	let test1 = new PlayerPlayedCardsTracker();
-		// 	let test2 = new Player(null);
-			
-		// 	test1.addCard(test2, test0[1].getNextCard());
-		// })()
+		expressApp.get(`/${this.route}/decks`, async (req, res) => {
+			this.database.models.Deck.findAll().then((deckList: Array<any>) => {
+				res.status(httpStatus.OK).send(deckList);
+			});
+		});
 	}
 	
 	getOptions(): GameOptions {
