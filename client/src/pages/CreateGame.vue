@@ -106,5 +106,10 @@ export default {
 </script>
 
 <style lang="less">
-
+.page[data-page-id="create-game"] {
+	& > .page-content {
+		height: 100%;
+		overflow-y: auto;
+	}
+}
 </style>
