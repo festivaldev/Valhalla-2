@@ -18,6 +18,7 @@ import PlayerPlayedCardsTracker from "./classes/PlayerPlayedCardsTracker";
 import Player from "../../classes/Player";
 import CAHPlayer from "./classes/CAHPlayer";
 import { GamePlayerInfo } from "../../classes/Constants";
+import httpStatus from "http-status";
 
 const models = require("./models");
 
@@ -56,11 +57,16 @@ export class CAHGameBundle implements IGameBundle {
 	gameLogic: IGameLogic;
 	
 	constructor(expressApp: Express) {
+		if (!fs.existsSync(this.clientDir)) {
+			fs.symlinkSync(path.join(__dirname, "../../../src/GameBundles/CAH.gamebundle/client"), this.clientDir);
+		}
+		
 		expressApp.use(`/${this.route}`, serveStatic(this.clientDir));
 		
 		if (!fs.existsSync(path.join(__dirname, "cards.sqlite3"))) {
-			Logger.log("[CAH] did not find card database. Did you forget to symlink into dist?", LogLevel.Error);
-			return;
+			// Logger.log("[CAH] did not find card database. Did you forget to symlink into dist?", LogLevel.Error);
+			// return;
+			fs.symlinkSync(path.join(__dirname, "../../../src/GameBundles/CAH.gamebundle/cards.sqlite3"), path.join(__dirname, "cards.sqlite3"));
 		}
 		
 		this.sequelize = new Sequelize({
