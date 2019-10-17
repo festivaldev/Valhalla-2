@@ -56,7 +56,7 @@ export class CAHGameBundle implements IGameBundle {
 	gameLogic: IGameLogic;
 	
 	constructor(expressApp: Express) {
-		expressApp.use(`/${this.route}`, serveStatic(path.join(__dirname, this.clientDir)));
+		expressApp.use(`/${this.route}`, serveStatic(this.clientDir));
 		
 		if (!fs.existsSync(path.join(__dirname, "cards.sqlite3"))) {
 			Logger.log("[CAH] did not find card database. Did you forget to symlink into dist?", LogLevel.Error);
