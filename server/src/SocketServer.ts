@@ -107,7 +107,7 @@ export default class SocketServer {
 				break;
 			}
 			case "start-game":
-				user.getGame().start();
+				user.getGame().start(user);
 				break;
 			case "leave-game":
 				user.getGame().removePlayer(user);

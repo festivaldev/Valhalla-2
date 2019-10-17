@@ -229,14 +229,18 @@ export default class Game {
 		return this.gameManager;
 	}
 	
-	public start(): boolean {
-		let started = this.gameLogic.handleGameStart();
+	public start(user: User): boolean {
+		if (this.getHost() != user) {
+			return false;
+		}
+		
+		let started = this.gameLogic.handleGameStart(user);
 		
 		if (started) {
 			Logger.log(`Starting game ${this.getId()} with ${this.players.length} player(s) (of ${this.options.playerLimit}), ${this.spectators.length} spectator(s) (of ${this.options.spectatorLimit})`);
 			
 			if (this.gameLogic.handleGameStartNextRound) {
-				this.gameLogic.handleGameStartNextRound();
+				this.gameLogic.handleGameStartNextRound(user);
 			}
 			this.gameManager.broadcastGameListRefresh();
 		}
