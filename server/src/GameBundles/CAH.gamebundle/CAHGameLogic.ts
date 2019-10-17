@@ -127,7 +127,9 @@ export default class CAHGameLogic implements IGameLogic {
 	}
 	
 	public handleGameStart(): boolean {
-		Logger.log(`Starting example game with id ${this.delegate.getId()}`, LogLevel.Warn);
+		if (this.state != CAHGameState.LOBBY) return false;
+		if (!this.hasEnoughCards()) return false;
+		if (!this.start()) return false;
 		
 		return true;
 	}
@@ -449,6 +451,9 @@ export default class CAHGameLogic implements IGameLogic {
 		}
 		
 		if (started) {
+			let _options = this.delegate.getGameSettings() as CAHGameOptions;
+			Logger.log(`[CAH] Starting game ${this.delegate.getId()} with card sets ${_options.cardSetIds}, ${_options.blanksInDeck} blanks, ${_options.playerLimit} max players, ${_options.spectatorLimit} max spectators, ${_options.scoreGoal} score limit`);
+			
 			let cardSets: Array<CardSet> = await this.loadCardSets();
 			this.blackDeck = await this.loadBlackDeck(cardSets);
 			this.whiteDeck = await this.loadWhiteDeck(cardSets);
