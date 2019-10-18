@@ -1,7 +1,7 @@
 import Game from "../../classes/Game";
 import IGameLogic from "../IGameLogic"
 import Logger, { LogLevel } from "../../util/Logger";
-import { MessageType, ErrorCode, LongPollResponse, LongPollEvent, GamePlayerInfo } from "../../classes/Constants";
+import { MessageType, ErrorCode, LongPollResponse, LongPollEvent, GamePlayerInfo, GameInfo } from "../../classes/Constants";
 import Player from "../../classes/Player";
 
 import CardSet from "./classes/CardSet";
@@ -145,6 +145,12 @@ export default class CAHGameLogic implements IGameLogic {
 		this.delegate.broadcastToPlayers(MessageType.GAME_EVENT, {
 			fuck: "this"
 		});
+	}
+	
+	public getInfo(): object {
+		return {
+			[GameInfo.STATE]: this.state
+		}
 	}
 	
 	public getPlayerInfo(player: Player): object {

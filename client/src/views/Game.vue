@@ -14,7 +14,8 @@ import { GameInfo, LongPollEvent, LongPollResponse, MessageType } from '@/script
 export default {
 	name: "Game",
 	data: () => ({
-		childComponent: null
+		childComponent: null,
+		currentGame: window.currentGame
 	}),
 	async beforeRouteLeave(to, from, next) {
 		if (!SocketService.socket) {
@@ -44,21 +45,27 @@ export default {
 			MessageType: MessageType,
 			LongPollEvent: LongPollEvent,
 			LongPollResponse: LongPollResponse
-		});
+		}, (data) => ({
+			...data,
+			currentGame: this.currentGame
+		}));
 		
 		SocketService.$on("message", this.onMessage);
 	},
 	methods: {
 		onMessage(message) {
 			if (message.type == MessageType.GAME_EVENT) {
-				this.$refs["child-component"].handleGameEvent(message);
+				switch (message.payload.event) {
+					case LongPollEvent.GAME_STATE_CHANGE:
+						this.currentGame.state = message.payload[LongPollResponse.GAME_STATE];
+
+						break;
+					default: break;
+				}
 			}
 		}
 	},
 	computed: {
-		currentGame() {
-			return window.currentGame;
-		},
 		gameBundleGameURL() {
 			if (!this.currentGame) return;
 			
