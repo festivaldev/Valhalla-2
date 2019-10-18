@@ -29,10 +29,10 @@ export default {
 	watch: {
 		gameBundle: async function (newBundle, oldBundle) {
 			this.childComponent = null;
-			this.childComponent = await HTTPVueLoader.load(this.gameBundleOptionsURL, "gameBundleOptions", (data) => ({
-				...data,
+			this.childComponent = await HTTPVueLoader.load(this.gameBundleOptionsURL, "gameBundleOptions", {
+				axios: axios,
 				SocketService: SocketService
-			}));
+			});
 		}
 	}
 }

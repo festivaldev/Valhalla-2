@@ -1,6 +1,7 @@
 import IGameLogic from "./IGameLogic";
 import Game from "../classes/Game";
 import GameOptions from "../classes/GameOptions";
+import Player from "../classes/Player";
 
 export default interface IGameBundle {
 	displayName: string;
@@ -14,6 +15,7 @@ export default interface IGameBundle {
 	getInfo(): Object;
 	
 	getOptions(): GameOptions;
+	getPlayerInfo(player: Player): object;
 	
 	gameLogic: IGameLogic;
 	createGameLogicInstance(game: Game): IGameLogic;

@@ -70,6 +70,7 @@ export default {
 	methods: {
 		gameBundleSelected() {
 			this.gameOptions = {
+				...this.gameOptions,
 				...this.gameBundles[this.selectedGameBundle].defaultGameOptions,
 				password: this.gameOptions.password
 			}
@@ -105,5 +106,10 @@ export default {
 </script>
 
 <style lang="less">
-
+.page[data-page-id="create-game"] {
+	& > .page-content {
+		height: 100%;
+		overflow-y: auto;
+	}
+}
 </style>

@@ -47,10 +47,10 @@ export default class Game {
 			this.host = player;
 		}
 		
+		this.gameLogic.handlePlayerJoin(player);
+		
 		let errorCode: ErrorCode = user.joinGame(this);
 		if (null != errorCode) return errorCode;
-		
-		this.gameLogic.handlePlayerJoin(player);
 		
 		this.broadcastToPlayers(MessageType.GAME_PLAYER_EVENT, {
 			[LongPollResponse.EVENT]: LongPollEvent.GAME_PLAYER_JOIN,
@@ -151,6 +151,14 @@ export default class Game {
 		
 		return this.host.getUser();
 	}
+	
+	public getHostPlayer(): Player {
+		if (this.host == null) {
+			return null;
+		}
+		
+		return this.host;
+	}
 
 	public getUsers(): Array<User> {
 		return this.playersToUsers();
@@ -177,8 +185,9 @@ export default class Game {
 			[GameInfo.GAME_BUNDLE]: this.gameBundle.getInfo(),
 			[GameInfo.GAME_OPTIONS]: this.options.serialize(includePassword),
 			[GameInfo.HAS_PASSWORD]: this.options.password != null && this.options.password.length,
-			[GameInfo.PLAYERS]: this.players.map(player => player.getUser().getNickname()),
-			[GameInfo.SPECTATORS]: this.spectators.map(user => user.getNickname())
+			[GameInfo.PLAYERS]: this.players.map(player => this.getPlayerInfo(player)),
+			[GameInfo.SPECTATORS]: this.spectators.map(user => user.getNickname()),
+			...this.gameLogic.getInfo()
 		}
 	}
 	
@@ -197,7 +206,8 @@ export default class Game {
 	public getPlayerInfo(player: Player): Object {
 		return {
 			[GamePlayerInfo.NAME]: player.getUser().getNickname(),
-			[GamePlayerInfo.SCORE]: player.getScore()
+			...this.gameBundle.getPlayerInfo(player),
+			...this.gameLogic.getPlayerInfo(player)
 		}
 	}
 
@@ -212,14 +222,22 @@ export default class Game {
 		return users;
 	}
 	
-	public start(): boolean {
-		let started = this.gameLogic.handleGameStart();
+	public getGameManager(): GameManager {
+		return this.gameManager;
+	}
+	
+	public async start(user: User): Promise<boolean> {
+		if (this.getHost() != user) {
+			return false;
+		}
+		
+		let started = await this.gameLogic.handleGameStart(user);
 		
 		if (started) {
-			Logger.log(`Starting game ${this.getId()} with ${this.players.length} player(s) (of ${this.options.playerLimit}), ${this.spectators.length} spectator(s) (of ${this.options.spectatorLimit}) ${this.options.scoreGoal} score limit`);
+			Logger.log(`Starting game ${this.getId()} with ${this.players.length} player(s) (of ${this.options.playerLimit}), ${this.spectators.length} spectator(s) (of ${this.options.spectatorLimit})`);
 			
 			if (this.gameLogic.handleGameStartNextRound) {
-				this.gameLogic.handleGameStartNextRound();
+				this.gameLogic.handleGameStartNextRound(user);
 			}
 			this.gameManager.broadcastGameListRefresh();
 		}

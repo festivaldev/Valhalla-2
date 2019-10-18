@@ -19,6 +19,7 @@ export default class HTTPServer {
 	
     constructor(port: number = 8080, gameBundles: Object) {
 		this.expressApp = express();
+		this.expressApp.set("json spaces", 4);
 		
 		this.expressApp.use(helmet());
 		this.expressApp.use(cors());
@@ -35,7 +36,10 @@ export default class HTTPServer {
 			this.gameBundles[bundleId] = new bundleClass(this.expressApp);
 			
 			this.gameScripts += `window.gameBundles["${bundleId}"] = ${JSON.stringify(this.gameBundles[bundleId].getInfo())};\n\n`;
-			this.gameScripts += fs.readFileSync(this.gameBundles[bundleId].clientScript) + "\n\n";
+			
+			if (fs.existsSync(this.gameBundles[bundleId].clientScript)) {
+				this.gameScripts += fs.readFileSync(this.gameBundles[bundleId].clientScript) + "\n\n";
+			}
 		});
 		
 		this.expressApp.use("/gameScripts.js", (req, res, next) => {

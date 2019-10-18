@@ -49,7 +49,7 @@ const ScriptContext = class {
 	
 	compile(module) {
 		let childModuleRequire = (childUrl) => {
-			return HTTPVueLoader.require(resolveUrl(this.component.baseUri, childUrl));
+			return HTTPVueLoader.require(this.component, (this.component.baseUri, childUrl));
 		}
 		let childLoader = (childUrl, name) => {
 			return HTTPVueLoader.load(resolveUrl(this.component.baseUri, childUrl), name);
@@ -166,6 +166,12 @@ const Component = class {
 	script = null;
 	styles = [];
 	_scopeId = "";
+	modules = null;
+	
+	constructor(name, modules) {
+		this.name = name;
+		this.modules = modules;
+	}
 	
 	get head() {
 		return document.head;
@@ -190,7 +196,7 @@ const Component = class {
 			[...htmlDocument.body.children].forEach(child => {
 				switch (child.nodeName) {
 					case "TEMPLATE":
-						this.template = new TemplateContext(this, response.data.match(/\<template\>([\s\S]+?)\<\/template\>/gm)[0].replace(/^<template>/, "").replace(/<\/template>$/, ""));
+						this.template = new TemplateContext(this, response.data.replace(/\n/g,"").match(/<template>(.*)<\/template>/gm)[0].replace(/^<template>/, "").replace(/<\/template>$/, ""));
 						break;
 					case "SCRIPT":
 						this.script = new ScriptContext(this, child);
@@ -267,8 +273,8 @@ HTTPVueLoader.identity = (value) => {
 	return value;
 };
 
-HTTPVueLoader.load = async (url, name, data) => {
-	let component = new Component(name);
+HTTPVueLoader.load = async (url, name, modules, data) => {
+	let component = new Component(name, modules);
 	return await component.load(url)
 		.then(component => {
 			return component;
@@ -296,8 +302,8 @@ HTTPVueLoader.loadComponent = (url, name) => {
 	return HTTPVueLoader.load(url, name);
 };
 
-HTTPVueLoader.require = (moduleName) => {
-	return window[moduleName];
+HTTPVueLoader.require = (component, moduleName) => {
+	return component.modules[moduleName] || window[moduleName];
 };
 
 HTTPVueLoader.langProcessor = {
