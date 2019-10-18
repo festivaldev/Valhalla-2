@@ -34,6 +34,10 @@ export default class ExampleGameLogic implements IGameLogic {
 		});
 	}
 	
+	public getInfo() : object {
+		return {};
+	}
+	
 	public getPlayerInfo(player: Player): object {
 		return {}
 	}

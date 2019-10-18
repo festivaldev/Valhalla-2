@@ -20,5 +20,6 @@ export default interface IGameLogic {
 	
 	handleMessage(type: MessageType, masterData: Object): void;
 	
+	getInfo(): object;
 	getPlayerInfo(player: Player): object;
 }

@@ -47,10 +47,10 @@ export default class Game {
 			this.host = player;
 		}
 		
+		this.gameLogic.handlePlayerJoin(player);
+		
 		let errorCode: ErrorCode = user.joinGame(this);
 		if (null != errorCode) return errorCode;
-		
-		this.gameLogic.handlePlayerJoin(player);
 		
 		this.broadcastToPlayers(MessageType.GAME_PLAYER_EVENT, {
 			[LongPollResponse.EVENT]: LongPollEvent.GAME_PLAYER_JOIN,
@@ -189,8 +189,9 @@ export default class Game {
 			[GameInfo.GAME_BUNDLE]: this.gameBundle.getInfo(),
 			[GameInfo.GAME_OPTIONS]: this.options.serialize(includePassword),
 			[GameInfo.HAS_PASSWORD]: this.options.password != null && this.options.password.length,
-			[GameInfo.PLAYERS]: this.players.map(player => player.getUser().getNickname()),
-			[GameInfo.SPECTATORS]: this.spectators.map(user => user.getNickname())
+			[GameInfo.PLAYERS]: this.players.map(player => this.getPlayerInfo(player)),
+			[GameInfo.SPECTATORS]: this.spectators.map(user => user.getNickname()),
+			...this.gameLogic.getInfo()
 		}
 	}
 	
