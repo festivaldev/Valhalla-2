@@ -74,3 +74,11 @@ export default {
 	}
 }
 </script>
+
+<style lang="less">
+.page[data-page-id="game"] {
+	& > .page-content {
+		padding: 12px;
+	}
+}
+</style>
