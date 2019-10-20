@@ -1,35 +1,39 @@
 export abstract class Card {
-    private _data: Uint8Array = new Uint8Array(3);
-
-    constructor(variant?: number, value?: number) {
-        if (variant)
-            this._data[1] = variant;
-        
-        if (value)
-            this._data[2] = value;
-    }
+    protected data: Uint8Array = new Uint8Array(3);
 
     public get bytes(): Uint8Array {
-        return this._data;
-    }
-
-    protected set data(data: number[]) {
-        if (data.length > 1)
-            this._data[1] = data[0] > -1 ? data[0] : this._data[1];
-        
-        if (data.length > 2)
-            this._data[2] = data[1] > -1 ? data[1] : this._data[2];
+        return this.data;
     }
 
     public get type(): number {
-        return this._data[0];
+        return this.data[0];
     }
 
-    public get variant(): number {
-        return this._data[1];
+    public set type(value: number) {
+        this.data[0] = value;
     }
 
-    public get value(): number {
-        return this._data[2];
+    protected get variant(): number {
+        return this.data[1];
     }
+
+    protected get value(): number {
+        return this.data[2];
+    }
+
+    constructor(type: number) {
+        this.type = type;
+    }
+
+    public abstract handle(preceding: Card): void;
+}
+
+export class UnknownCard extends Card {
+    constructor(...bytes: number[]) {
+        super(bytes[0]);
+
+        this.data = new Uint8Array(bytes);
+    }
+
+    public handle(preceding: Card): void {}
 }

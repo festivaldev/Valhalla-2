@@ -10,6 +10,14 @@ export default class UnoGameLogic implements IGameLogic {
 	constructor(delegate: Game) {
         this.delegate = delegate;
     }
+
+    public getInfo(): object {
+        return {};
+    }
+
+    public getPlayerInfo(player: Player): object {
+        return {};
+    }
 	
 	public handlePlayerJoin(player: Player) {
         Logger.log(`${player.getUser().getNickname()} joined Uno!`, LogLevel.Warn);
@@ -20,13 +28,14 @@ export default class UnoGameLogic implements IGameLogic {
 		Logger.log(`${player.getUser().getNickname()} left Uno!`, LogLevel.Warn);
 	}
 	
+	public handleGameEnd() {
+		Logger.log(`Uno game with id ${this.delegate.getId()} ended`, LogLevel.Warn);
+    }
+    
 	public handleGameStart(): boolean {
 		Logger.log(`Starting Uno game with id ${this.delegate.getId()}`, LogLevel.Warn);
 		
 		return true;
-	}
-	public handleGameEnd() {
-		Logger.log(`Uno game with id ${this.delegate.getId()} ended`, LogLevel.Warn);
 	}
 	
 	public handleMessage(type: MessageType, masterData: Object) {
