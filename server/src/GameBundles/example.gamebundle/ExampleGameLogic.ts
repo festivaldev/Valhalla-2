@@ -3,6 +3,7 @@ import Player from "../../classes/Player";
 import Logger, { LogLevel } from "../../util/Logger";
 import Game from "../../classes/Game";
 import { MessageType } from "../../classes/Constants";
+import User from "../../classes/User";
 
 export default class ExampleGameLogic implements IGameLogic {
 	delegate: Game;
@@ -28,7 +29,7 @@ export default class ExampleGameLogic implements IGameLogic {
 		Logger.log(`Example game with id ${this.delegate.getId()} ended`, LogLevel.Warn);
 	}
 	
-	public handleMessage(type: MessageType, masterData: Object) {
+	public handleMessage(user: User, type: MessageType, masterData: Object) {
 		this.delegate.broadcastToPlayers(MessageType.GAME_EVENT, {
 			fuck: "this"
 		});
