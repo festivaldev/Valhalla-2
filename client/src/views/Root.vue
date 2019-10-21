@@ -42,7 +42,6 @@ export default {
 	},
 	methods: {
 		onMessage(message) {
-			console.log(message);
 			switch (message.type) {
 				case MessageType.GAME_EVENT:
 					break;

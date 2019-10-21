@@ -54,7 +54,7 @@ export default class Game {
 		
 		this.broadcastToPlayers(MessageType.GAME_PLAYER_EVENT, {
 			[LongPollResponse.EVENT]: LongPollEvent.GAME_PLAYER_JOIN,
-			[LongPollResponse.NICKNAME]: user.getNickname()
+			[LongPollResponse.PLAYER_INFO]: this.getPlayerInfo(player)
 		});
 		
 		return null;
@@ -73,7 +73,7 @@ export default class Game {
 			
 			this.broadcastToPlayers(MessageType.GAME_PLAYER_EVENT, {
 				[LongPollResponse.EVENT]: LongPollEvent.GAME_PLAYER_LEAVE,
-				[LongPollResponse.NICKNAME]: user.getNickname()
+				[LongPollResponse.PLAYER_INFO]: this.getPlayerInfo(player)
 			});
 			
 			if (this.host == player) {
@@ -106,7 +106,7 @@ export default class Game {
 		
 		this.broadcastToPlayers(MessageType.GAME_PLAYER_EVENT, {
 			[LongPollResponse.EVENT]: LongPollEvent.GAME_SPECTATOR_JOIN,
-			[LongPollResponse.NICKNAME]: user.getNickname()
+			[LongPollResponse.SPECTATOR_INFO]: this.getSpectatorInfo(user)
 		});
 		
 	}
@@ -122,7 +122,7 @@ export default class Game {
 		
 		this.broadcastToPlayers(MessageType.GAME_PLAYER_EVENT, {
 			[LongPollResponse.EVENT]: LongPollEvent.GAME_SPECTATOR_LEAVE,
-			[LongPollResponse.NICKNAME]: user.getNickname()
+			[LongPollResponse.SPECTATOR_INFO]: this.getSpectatorInfo(user)
 		});
 	}
 
@@ -181,7 +181,7 @@ export default class Game {
 		return {
 			[GameInfo.ID]: this.id,
 			[GameInfo.CREATED]: this.created,
-			[GameInfo.HOST]: this.host.getUser().getNickname(),
+			[GameInfo.HOST]: this.getPlayerInfo(this.host),
 			[GameInfo.GAME_BUNDLE]: this.gameBundle.getInfo(),
 			[GameInfo.GAME_OPTIONS]: this.options.serialize(includePassword),
 			[GameInfo.HAS_PASSWORD]: this.options.password != null && this.options.password.length,
@@ -206,6 +206,7 @@ export default class Game {
 	public getPlayerInfo(player: Player): Object {
 		return {
 			[GamePlayerInfo.NAME]: player.getUser().getNickname(),
+			[GamePlayerInfo.SOCKET_ID]: player.getUser().getSocketId(),
 			...this.gameBundle.getPlayerInfo(player),
 			...this.gameLogic.getPlayerInfo(player)
 		}
@@ -220,6 +221,17 @@ export default class Game {
 		users.concat(this.spectators);
 		
 		return users;
+	}
+	
+	public getAllSpectatorInfo(): Array<object> {
+		return this.spectators.map(spectator => this.getSpectatorInfo(spectator));
+	}
+	
+	public getSpectatorInfo(spectator: User): object {
+		return {
+			[GamePlayerInfo.NAME]: spectator.getNickname(),
+			[GamePlayerInfo.SOCKET_ID]: spectator.getSocketId(),
+		}
 	}
 	
 	public getGameManager(): GameManager {

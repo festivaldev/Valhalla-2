@@ -59,14 +59,15 @@ export const GameInfo = {
 
 export const GameOptionData = {
     PASSWORD: "password",
-    PLAYER_LIMIT: "player-limit",
-    SPECTATOR_LIMIT: "spectator-limit",
-    SCORE_LIMIT: "score-limit"
+    PLAYER_LIMIT: "playerLimit",
+    SPECTATOR_LIMIT: "spectatorLimit",
+    SCORE_LIMIT: "scoreLimit"
 }
 
 export const GamePlayerInfo = {
     NAME: "name",
-    SCORE: "score",
+	SCORE: "score",
+	SOCKET_ID: "socket-id",
     STATUS: "status"
 }
 
@@ -110,8 +111,9 @@ export const LongPollResponse = {
     NICKNAME: "nickname",
     PLAYER_INFO: "player-info",
     REASON: "reason",
-    ROUND_WINNER: "round-winner",
-    TIMESTAMP: "timestamp",
+	ROUND_WINNER: "round-winner",
+	SPECTATOR_INFO: "spectator-info",
+	TIMESTAMP: "timestamp"
 }
 
 export const MessageType = {

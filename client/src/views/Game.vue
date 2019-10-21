@@ -47,6 +47,8 @@ export default {
 		
 		window.removeEventListener("keydown", this.onKeyDown);
 		window.removeEventListener("keyup", this.onKeyUp);
+		
+		this.currentGame = window.currentGame = null;
 	},
 	async mounted() {
 		this.childComponent = await HTTPVueLoader.load(this.gameBundleGameURL, "game", {
@@ -68,8 +70,30 @@ export default {
 	},
 	methods: {
 		onMessage(message) {
-			if (message.type == MessageType.GAME_EVENT) {
-				this.$refs["child-component"].handleGameEvent(message);
+			switch (message.type) {
+				case MessageType.GAME_EVENT:
+					this.$refs["child-component"].handleGameEvent(message);
+					switch (message.payload.event) {
+						case LongPollEvent.GAME_STATE_CHANGE:
+							this.currentGame.state = message.payload[LongPollResponse.GAME_STATE];
+
+							break;
+						default: break;
+					}
+					break;
+				case MessageType.GAME_PLAYER_EVENT:
+					this.$refs["child-component"].handleGamePlayerEvent(message);
+					switch (message.payload.event) {
+						case LongPollEvent.GAME_PLAYER_JOIN:
+							this.currentGame.players.push(message.payload["player-info"]);
+							break;
+						case LongPollEvent.GAME_PLAYER_LEAVE:
+							this.currentGame.players.splice(this.currentGame.players.indexOf(this.currentGame.players.find(player => player["socket-id"] === message.payload["player-info"]["socket-id"])), 1);
+							break;
+						default: break;
+					}
+					break;
+				default: break;
 			}
 		},
 		
