@@ -264,7 +264,6 @@ HTTPVueLoader.install = (Vue) => {
 	Vue.mixin({
 		beforeCreate: function() {
 			let components = this.$options.components;
-			console.log(components);
 		}
 	})
 };

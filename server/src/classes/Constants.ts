@@ -66,7 +66,8 @@ export enum GameOptionData {
 
 export enum GamePlayerInfo {
     NAME = "name",
-    SCORE = "score",
+	SCORE = "score",
+	SOCKET_ID = "socket-id",
     STATUS = "status"
 }
 
@@ -110,8 +111,9 @@ export enum LongPollResponse {
     NICKNAME = "nickname",
     PLAYER_INFO = "player-info",
     REASON = "reason",
-    ROUND_WINNER = "round-winner",
-    TIMESTAMP = "timestamp",
+	ROUND_WINNER = "round-winner",
+	SPECTATOR_INFO = "spectator-info",
+	TIMESTAMP = "timestamp",
 }
 
 export enum MessageType {
