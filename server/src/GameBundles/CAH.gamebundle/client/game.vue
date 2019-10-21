@@ -15,7 +15,7 @@
 		<template v-if="currentGame.state == CAHGameState.PLAYING">
 			<div class="game-container">
 				<div class="call-container">
-					<div class="current-card">
+					<div class="current-card" v-if="this.blackCard">
 						<div class="card call-card">
 							<div class="card-content">
 								<MetroTextBlock text-style="sub-title" v-html="blackCard.text"></MetroTextBlock>
@@ -26,7 +26,7 @@
 				<div class="played-responses-container"></div>
 			</div>
 			
-			<div class="card-holder">
+			<div class="card-holder" v-if="this.hand.length">
 				<div class="card-wrapper">
 					<div class="card response-card" v-for="(card, index) in hand" :key="index" :style="{'left': `calc((85% / 9) * ${index})`, 'top': `${(9 - index) * 5}px`}">
 						<div class="card-content">
