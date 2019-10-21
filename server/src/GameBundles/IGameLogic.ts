@@ -18,7 +18,7 @@ export default interface IGameLogic {
 	handleGameRoundComplete?(): void;
 	handleGameEnd(): void;
 	
-	handleMessage(type: MessageType, masterData: Object): void;
+	handleMessage(user: User, type: MessageType, masterData: Object): void;
 	
 	getInfo(): object;
 	getPlayerInfo(player: Player): object;

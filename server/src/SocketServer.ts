@@ -113,7 +113,7 @@ export default class SocketServer {
 				user.getGame().removePlayer(user);
 				break;
 			case "game-event":
-				user.getGame().getGameLogic().handleMessage(MessageType.GAME_EVENT, messageData.payload);
+				user.getGame().getGameLogic().handleMessage(user, MessageType.GAME_EVENT, messageData.payload);
 				break;
 			default: break;
 		}
