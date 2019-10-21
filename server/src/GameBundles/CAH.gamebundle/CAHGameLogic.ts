@@ -51,7 +51,9 @@ enum CAHLongPollEvent {
 	GAME_BLACK_RESHUFFLE = "game-black-reshuffle",
 	GAME_JUDGE_LEFT = "game-judge-left",
 	GAME_WHITE_RESHUFFLE = "game-white-reshuffle",
-	HAND_DEAL = "hand-deal"
+	HAND_DEAL = "hand-deal",
+	JUDGE_CARD = "judge-card",
+	PLAY_CARD = "play-card"
 };
 
 export default class CAHGameLogic implements IGameLogic {
@@ -141,10 +143,18 @@ export default class CAHGameLogic implements IGameLogic {
 		Logger.log(`Example game with id ${this.delegate.getId()} ended`, LogLevel.Warn);
 	}
 	
-	public handleMessage(type: MessageType, masterData: Object) {
-		this.delegate.broadcastToPlayers(MessageType.GAME_EVENT, {
-			fuck: "this"
-		});
+	public handleMessage(user: User, type: MessageType, masterData: any) {
+		console.log(user, type, masterData);
+		// this.delegate.broadcastToPlayers(MessageType.GAME_EVENT, {
+		// 	fuck: "this"
+		// });
+		switch (masterData[LongPollResponse.EVENT]) {
+			case CAHLongPollEvent.PLAY_CARD:
+				let errorCode = this.playCard(user, masterData.card.id, masterData.card.text);
+				console.log(errorCode);
+				break;
+			default: break;
+		}
 	}
 	
 	public getInfo(): object {

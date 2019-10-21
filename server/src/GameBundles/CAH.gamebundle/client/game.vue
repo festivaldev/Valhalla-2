@@ -28,7 +28,7 @@
 			
 			<div class="card-holder" v-if="this.hand.length">
 				<div class="card-wrapper">
-					<div class="card response-card" v-for="(card, index) in hand" :key="index" :style="{'left': `calc((85% / 9) * ${index})`, 'top': `${(9 - index) * 5}px`}">
+					<div class="card response-card" v-for="(card, index) in hand" :key="index" @click="() => playCard(card)" :style="{'left': `calc((85% / 9) * ${index})`, 'top': `${(9 - index) * 5}px`}">
 						<div class="card-content">
 							<MetroTextBlock v-html="card.text" />
 						</div>
@@ -92,10 +92,27 @@ module.exports = {
 	}),
 	methods: {
 		startGame() {
-			SocketService.emit({type:"start-game"})
+			this.gameBundle.startGame();
 		},
-		playCard(card) {
-			
+		async playCard(card) {
+			if (card.writeIn) {
+				let dialog = new metroUI.ContentDialog({
+					title: "Leere Karte",
+					content: "<div class='text-box'>\
+						<label>Gib den Text ein, der auf der Karte stehen soll:</label>\
+						<textarea type='text' placeholder='Benötigt' name='card-text' required></textarea>\
+					</div>",
+					commands: [{ text: "Abbrechen" }, { text: "Ok", primary: true }]
+				});
+				
+				if (await dialog.showAsync() == metroUI.ContentDialogResult.Primary) {
+					let _card = Object.assign({}, card);
+					_card.text = dialog.text["card-text"];
+					this.gameBundle.playCard(_card);
+				}
+			} else {
+				this.gameBundle.playCard(card);
+			}
 		},
 		judgeCard(card) {},
 		handleGameEvent(message) {
@@ -118,6 +135,9 @@ module.exports = {
 		},
 		isHost() {
 			return this.currentGame.host["socket-id"] == SocketService.socket.id
+		},
+		gameBundle() {
+			return window.gameBundles[this.currentGame["game-bundle"].name];
 		}
 	}
 }
