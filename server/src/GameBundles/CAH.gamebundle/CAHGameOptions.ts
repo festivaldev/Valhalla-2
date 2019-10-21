@@ -50,8 +50,8 @@ export default class CAHGameOptions extends GameOptions {
 		// 	});
 		// }
 		
-		options.blanksInDeck = Math.max(CAHGameOptions.MIN_BLANK_CARD_LIMIT, Math.min(CAHGameOptions.MAX_BLANK_CARD_LIMIT, parseInt(json.blanksLimit)));
-		options.scoreGoal = Math.max(CAHGameOptions.MIN_SCORE_LIMIT, Math.min(CAHGameOptions.MAX_SCORE_LIMIT, parseInt(json.scoreGoal)));
+		options.blanksInDeck = Math.max(CAHGameOptions.MIN_BLANK_CARD_LIMIT, Math.min(CAHGameOptions.MAX_BLANK_CARD_LIMIT, parseInt(json.blanksInDeck)));
+		options.scoreGoal = Math.max(CAHGameOptions.MIN_SCORE_LIMIT, Math.min(CAHGameOptions.MAX_SCORE_LIMIT, parseInt(json.scoreLimit)));
 		options.cardSetIds = json.cardSets || [];
 		
 		return options;
