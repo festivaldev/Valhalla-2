@@ -1,6 +1,7 @@
 <template>
 	<div class="scoreboard-content">
-		<MetroTextBlock text-style="sub-title">{{ currentGame.host}}s Spiel – Punkte</MetroTextBlock>
+		<MetroTextBlock text-style="sub-title">Spiel von {{ currentGame.host.name }} – Punkte</MetroTextBlock>
+		<MetroTextBlock text-style="caption">{{ currentGame["game-bundle"].displayName }}</MetroTextBlock>
 		<table>
 			<thead>
 				<tr>

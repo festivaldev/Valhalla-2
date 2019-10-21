@@ -23,7 +23,6 @@ module.exports = {
 	}),
 	async mounted() {
 		this.decks = await axios.get(`${SocketService.url}/cah/decks`).then(response => response.data);
-		console.log(this.decks);
 	},
 	methods: {
 		test() {
