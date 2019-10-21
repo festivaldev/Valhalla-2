@@ -9,7 +9,7 @@
 				<template slot="item-template" slot-scope="{ local }">
 					<MetroStackPanel orientation="vertical">
 						<div>
-							<MetroTextBlock text-style="base">{{ local.host }}'s Spiel</MetroTextBlock>
+							<MetroTextBlock text-style="base">Spiel von {{ local.host }}</MetroTextBlock>
 							<MetroTextBlock>{{ local.gameInfo["game-bundle"].displayName }}</MetroTextBlock>
 						</div>
 						
@@ -19,7 +19,7 @@
 								<MetroTextBlock>Zuschauer: {{ local.gameInfo.spectators.length }} / {{ local.gameInfo["game-options"].spectatorLimit }}</MetroTextBlock>
 							</div>
 							<div class="col col-6" style=" display: flex; justify-content: flex-end; align-items: flex-end;">
-								<MetroSymbolIcon icon="shield" v-if="local.gameInfo['has-password']" />
+								<MetroSymbolIcon icon="report-hacked" v-if="local.gameInfo['has-password']" />
 							</div>
 						</div>
 					</MetroStackPanel>
