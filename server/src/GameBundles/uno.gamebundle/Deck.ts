@@ -17,6 +17,13 @@ export class Deck {
         for (let i = 0; i < count; i++) {
             let r = Math.random();
             //Math.random() * myArray.length>>0
+
+            let blueprint = this.options.blueprints.find(_ => _.r - _.c <= r && r < _.r);
+
+            let variant = blueprint.vt[Math.random() * blueprint.vt.length >> 0];
+            let value = blueprint.vl[Math.random() * blueprint.vl.length >> 0];
+
+            console.log(`Card: ${i} / Roll: ${r} / Blueprint: ${blueprint.f.name} (${(blueprint.r - blueprint.c).toFixed(4)} - ${blueprint.r.toFixed(4)}) / VT: ${variant} / VL: ${value}`);
         }
 
         return cards;
@@ -32,22 +39,62 @@ export class Deck {
 
 }
 
+const moveAny = "* | * > * | *";
+const moveEqualVl = "* | * > * | =";
+const moveEqualVt = "* | * > = | *";
+
 export class DeckOptions {
 
     public blueprints: Blueprint<Card>[] = [
         new Blueprint(NumeralCard, [ColorVariant.Red, ColorVariant.Blue, ColorVariant.Yellow, ColorVariant.Green], "0-9", [
-            new PlayableMove(NumeralCard, "* | * > = | ="),
-            new PlayableMove(DrawNumeralCard, "* | * > = | *", true),
-            new PlayableMove(ReverseDirectionCard, "* | * > = | *"),
-            new PlayableMove(SkipTurnCard, "* | * > = | *"),
-            new PlayableMove(WildCard, "* | * > = | *"),
-            new PlayableMove(DrawNumeralWildCard, "* | * > = | *", true),
+            new PlayableMove(NumeralCard, moveEqualVl), // Play any value on matching variants
+            new PlayableMove(NumeralCard, moveEqualVt), // Play any variant on matching values
+            new PlayableMove(DrawNumeralCard, moveEqualVt),
+            new PlayableMove(ReverseDirectionCard, moveEqualVt),
+            new PlayableMove(SkipTurnCard, moveEqualVt),
+            new PlayableMove(WildCard, moveAny),
+            new PlayableMove(DrawNumeralWildCard, moveAny),
         ], (1 / 108) * 4 * 19),
-        new Blueprint(DrawNumeralCard, [ColorVariant.Red, ColorVariant.Blue, ColorVariant.Yellow, ColorVariant.Green], "2", [], (1 / 108) * 4 * 2),
-        new Blueprint(ReverseDirectionCard, [ColorVariant.Red, ColorVariant.Blue, ColorVariant.Yellow, ColorVariant.Green], "*", [], (1 / 108) * 4 * 2),
-        new Blueprint(SkipTurnCard, [ColorVariant.Red, ColorVariant.Blue, ColorVariant.Yellow, ColorVariant.Green], "*", [], (1 / 108) * 4 * 2),
-        new Blueprint(WildCard, [ColorVariant.Black], "*", [], (1 / 108) * 4),
-        new Blueprint(DrawNumeralWildCard, [ColorVariant.Black], "*", [], (1 / 108) * 4),
+        new Blueprint(DrawNumeralCard, [ColorVariant.Red, ColorVariant.Blue, ColorVariant.Yellow, ColorVariant.Green], "2", [
+            new PlayableMove(NumeralCard, moveEqualVt, true),
+            new PlayableMove(DrawNumeralCard, moveAny),
+            new PlayableMove(ReverseDirectionCard, moveEqualVt, true),
+            new PlayableMove(SkipTurnCard, moveEqualVt, true),
+            new PlayableMove(WildCard, moveAny, true),
+            new PlayableMove(DrawNumeralWildCard, moveAny, true),
+        ], (1 / 108) * 4 * 2),
+        new Blueprint(ReverseDirectionCard, [ColorVariant.Red, ColorVariant.Blue, ColorVariant.Yellow, ColorVariant.Green], "*", [
+            new PlayableMove(NumeralCard, moveEqualVt),
+            new PlayableMove(DrawNumeralCard, moveEqualVt),
+            new PlayableMove(ReverseDirectionCard, moveAny),
+            new PlayableMove(SkipTurnCard, moveEqualVt),
+            new PlayableMove(WildCard, moveAny),
+            new PlayableMove(DrawNumeralWildCard, moveAny),
+        ], (1 / 108) * 4 * 2),
+        new Blueprint(SkipTurnCard, [ColorVariant.Red, ColorVariant.Blue, ColorVariant.Yellow, ColorVariant.Green], "*", [
+            new PlayableMove(NumeralCard, moveEqualVt),
+            new PlayableMove(DrawNumeralCard, moveEqualVt),
+            new PlayableMove(ReverseDirectionCard, moveEqualVt),
+            new PlayableMove(SkipTurnCard, moveAny),
+            new PlayableMove(WildCard, moveAny),
+            new PlayableMove(DrawNumeralWildCard, moveAny),
+        ], (1 / 108) * 4 * 2),
+        new Blueprint(WildCard, [ColorVariant.Black], "*", [
+            new PlayableMove(NumeralCard, moveEqualVt),
+            new PlayableMove(DrawNumeralCard, moveEqualVt),
+            new PlayableMove(ReverseDirectionCard, moveEqualVt),
+            new PlayableMove(SkipTurnCard, moveEqualVt),
+            new PlayableMove(WildCard, moveAny),
+            new PlayableMove(DrawNumeralWildCard, moveAny),
+        ], (1 / 108) * 4),
+        new Blueprint(DrawNumeralWildCard, [ColorVariant.Black], "*", [
+            new PlayableMove(NumeralCard, moveEqualVt, true),
+            new PlayableMove(DrawNumeralCard, moveEqualVt, true),
+            new PlayableMove(ReverseDirectionCard, moveEqualVt, true),
+            new PlayableMove(SkipTurnCard, moveEqualVt, true),
+            new PlayableMove(WildCard, moveAny, true),
+            new PlayableMove(DrawNumeralWildCard, moveAny),
+        ], (1 / 108) * 4),
     ];
 
     public init(): void {

@@ -27,7 +27,9 @@ export class UnoGameBundle implements IGameBundle {
 	
 	constructor(expressApp: Express) {
         expressApp.use(`/${this.route}`, Middleware);
-        new Deck();
+        
+        const d = new Deck();
+        d.generateCards(10);
 	}
 	
 	getInfo(): object {
