@@ -25,7 +25,8 @@ export abstract class Card {
         this.type = type;
     }
 
-    public abstract handle(preceding: Card): void;
+    public abstract handleFollowing(following: Card): void;
+    public abstract handlePreceding(preceding: Card): void;
 }
 
 export class UnknownCard extends Card {
@@ -35,5 +36,6 @@ export class UnknownCard extends Card {
         this.data = new Uint8Array(bytes);
     }
 
-    public handle(preceding: Card): void {}
+    public handleFollowing(following: Card): void {}
+    public handlePreceding(preceding: Card): void {}
 }

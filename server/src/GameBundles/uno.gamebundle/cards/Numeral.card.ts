@@ -6,7 +6,11 @@ export class NumeralCard extends Card {
         super(type);
     }
 
-    public handle(preceding: Card): void {
+    public handleFollowing(following: Card): void {
+        
+    }
+
+    public handlePreceding(preceding: Card): void {
         
     }
 
