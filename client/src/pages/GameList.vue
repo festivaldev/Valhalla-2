@@ -9,17 +9,17 @@
 				<template slot="item-template" slot-scope="{ local }">
 					<MetroStackPanel orientation="vertical">
 						<div>
-							<MetroTextBlock text-style="base">Spiel von {{ local.host }}</MetroTextBlock>
-							<MetroTextBlock>{{ local.gameInfo[GameInfo.GAME_BUNDLE].displayName }}</MetroTextBlock>
+							<MetroTextBlock text-style="base">Spiel von {{ local[GameInfo.HOST][GamePlayerInfo.NAME] }}</MetroTextBlock>
+							<MetroTextBlock>{{ local[GameInfo.GAME_BUNDLE].displayName }}</MetroTextBlock>
 						</div>
 						
 						<div class="row">
 							<div class="col col-6">
-								<MetroTextBlock>Spieler: {{ local.gameInfo.players.length }} / {{ local.gameInfo[GameInfo.GAME_OPTIONS].playerLimit }}</MetroTextBlock>
-								<MetroTextBlock>Zuschauer: {{ local.gameInfo.spectators.length }} / {{ local.gameInfo[GameInfo.GAME_OPTIONS].spectatorLimit }}</MetroTextBlock>
+								<MetroTextBlock>Spieler: {{ local[GameInfo.PLAYERS].length }} / {{ local[GameInfo.GAME_OPTIONS].playerLimit }}</MetroTextBlock>
+								<MetroTextBlock>Zuschauer: {{ local[GameInfo.SPECTATORS].length }} / {{ local[GameInfo.GAME_OPTIONS].spectatorLimit }}</MetroTextBlock>
 							</div>
 							<div class="col col-6" style=" display: flex; justify-content: flex-end; align-items: flex-end;">
-								<MetroSymbolIcon icon="report-hacked" v-if="local.gameInfo[GameInfo.HAS_PASSWORD]" />
+								<MetroSymbolIcon icon="report-hacked" v-if="local[GameInfo.HAS_PASSWORD]" />
 							</div>
 						</div>
 					</MetroStackPanel>
@@ -34,7 +34,7 @@ import axios from "axios"
 import CryptoJS from "crypto-js"
 
 import SocketService from "@/scripts/SocketService"
-import { EventDetail, EventType, GameInfo, MessageType } from "@/scripts/Constants"
+import { EventDetail, EventType, GameInfo, GamePlayerInfo, MessageType } from "@/scripts/Constants"
 
 export default {
 	name: "GameList",
@@ -72,7 +72,7 @@ export default {
 		},
 		
 		async gridViewItemClicked(sender, game, index) {
-			if (game.gameInfo[GameInfo.HAS_PASSWORD]) {
+			if (game[GameInfo.HAS_PASSWORD]) {
 				let dialog = new metroUI.ContentDialog({
 					title: "Passwort benötigt",
 					content: () => (
@@ -106,9 +106,8 @@ export default {
 		}
 	},
 	computed: {
-		GameInfo() {
-			return GameInfo;
-		}
+		GameInfo() { return GameInfo },
+		GamePlayerInfo() { return GamePlayerInfo }
 	}
 }
 </script>
