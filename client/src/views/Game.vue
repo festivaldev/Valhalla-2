@@ -12,7 +12,7 @@
 <script>
 import SocketService from "@/scripts/SocketService"
 import HTTPVueLoader from "@/scripts/HTTPVueLoader"
-import { GameInfo, LongPollEvent, LongPollResponse, MessageType } from '@/scripts/Constants'
+import { EventDetail, EventType, GameBundleInfo, GameInfo, GamePlayerInfo, MessageType } from '@/scripts/Constants'
 
 export default {
 	name: "Game",
@@ -35,7 +35,10 @@ export default {
 			
 			if (await dialog.showAsync() == metroUI.ContentDialogResult.Primary) {
 				SocketService.emit({
-					type: "leave-game"
+					type: MessageType.CLIENT_EVENT,
+					payload: {
+						[EventDetail.EVENT]: EventType.GAME_LEAVE
+					}
 				});
 				next();
 			} else {
@@ -43,57 +46,77 @@ export default {
 			}
 		}
 		
-		SocketService.$off("message", this.onMessage);
-		
-		window.removeEventListener("keydown", this.onKeyDown);
-		window.removeEventListener("keyup", this.onKeyUp);
-		
 		this.currentGame = window.currentGame = null;
 	},
 	async mounted() {
-		this.childComponent = await HTTPVueLoader.load(this.gameBundleGameURL, "game", {
-			SocketService: SocketService,
-			MessageType: MessageType,
-			LongPollEvent: LongPollEvent,
-			LongPollResponse: LongPollResponse
-		});
+		try {
+			this.childComponent = await HTTPVueLoader.load(this.gameBundleGameURL, "game", {
+				SocketService: SocketService,
+				EventDetail: EventDetail,
+				EventType: EventType,
+				GameInfo: GameInfo,
+				GamePlayerInfo: GamePlayerInfo,
+				MessageType: MessageType,
+			}, (data) => ({
+				...data,
+				currentGame: this.currentGame
+			}));
+		} catch (e) {
+			console.log("[Error] Could not load game container");
+		}
 		
-		this.scoreboardComponent = await HTTPVueLoader.load(this.gameBundleScoreboardURL, "scoreboard", null, (data) => ({
-			...data,
-			currentGame: this.currentGame
-		}));
+		try {	
+			this.scoreboardComponent = await HTTPVueLoader.load(this.gameBundleScoreboardURL, "scoreboard", {
+				GameBundleInfo: GameBundleInfo,
+				GameInfo: GameInfo,
+				GamePlayerInfo: GamePlayerInfo,
+			}, (data) => ({
+				...data,
+				currentGame: this.currentGame
+			}));
+		} catch (e) {
+			console.log("[Error] Could not load game scoreboard");
+		}
 		
 		SocketService.$on("message", this.onMessage);
 		
 		window.addEventListener("keydown", this.onKeyDown);
 		window.addEventListener("keyup", this.onKeyUp);
 	},
+	beforeDestroy() {
+		SocketService.$off("message", this.onMessage);
+		
+		window.removeEventListener("keydown", this.onKeyDown);
+		window.removeEventListener("keyup", this.onKeyUp);
+	},
 	methods: {
 		onMessage(message) {
+			console.log(message);
+			const payload = message.payload;
+			
 			switch (message.type) {
 				case MessageType.GAME_EVENT:
-					this.$refs["child-component"].handleGameEvent(message);
-					switch (message.payload.event) {
-						case LongPollEvent.GAME_STATE_CHANGE:
-							this.currentGame.state = message.payload[LongPollResponse.GAME_STATE];
-
-							break;
-						default: break;
+					if (payload[EventDetail.EVENT] == EventType.GAME_OPTIONS_CHANGED) {
+						this.currentGame = payload[EventDetail.GAME_INFO];
+						this.$refs["child-component"].currentGame = this.currentGame;
 					}
+					
+					this.$refs["child-component"].handleGameEvent(payload);
 					break;
 				case MessageType.GAME_PLAYER_EVENT:
-					this.$refs["child-component"].handleGamePlayerEvent(message);
-					switch (message.payload.event) {
-						case LongPollEvent.GAME_PLAYER_JOIN:
-							this.currentGame.players.push(message.payload["player-info"]);
+					switch (payload[EventDetail.EVENT]) {
+						case EventType.GAME_PLAYER_JOIN:
+							this.currentGame.players.push(payload[EventDetail.PLAYER_INFO]);
 							break;
-						case LongPollEvent.GAME_PLAYER_LEAVE:
-							this.currentGame.players.splice(this.currentGame.players.indexOf(this.currentGame.players.find(player => player["socket-id"] === message.payload["player-info"]["socket-id"])), 1);
+						case EventType.GAME_PLAYER_LEAVE:
+							this.currentGame.players
+								.splice(this.currentGame.players
+									.indexOf(this.currentGame.players
+										.find(player => player[GamePlayerInfo.SOCKET_ID] === payload[EventDetail.PLAYER_INFO][GamePlayerInfo.SOCKET_ID])), 1);
 							break;
-						default: break;
 					}
+					this.$refs["child-component"].handleGamePlayerEvent(payload);
 					break;
-				default: break;
 			}
 		},
 		
@@ -117,9 +140,6 @@ export default {
 		}
 	},
 	computed: {
-		currentGame() {
-			return window.currentGame;
-		},
 		gameBundleGameURL() {
 			if (!this.currentGame) return;
 			

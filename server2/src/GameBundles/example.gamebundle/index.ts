@@ -32,8 +32,7 @@ export class ExampleGameBundle implements IGameBundle {
 			[GameBundleInfo.DISPLAY_NAME]: this.displayName,
 			[GameBundleInfo.VERSION]: this.version,
 			[GameBundleInfo.AUTHOR]: this.author,
-			[GameBundleInfo.ROUTE]: this.route,
-			[GameBundleInfo.CLIENT_DIRECTORY]: this.clientDir
+			[GameBundleInfo.ROUTE]: this.route
 		}
 	}
 	

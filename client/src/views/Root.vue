@@ -15,11 +15,10 @@
 
 <script>
 import SocketService from "@/scripts/SocketService"
-import { MessageType } from "@/scripts/Constants"
+import { EventDetail, EventType, GameInfo, MessageType } from "@/scripts/Constants"
 
 import GameList from "@/pages/GameList"
 import CreateGame from "@/pages/CreateGame"
-import { GameInfo, LongPollResponse, LongPollEvent } from '@/scripts/Constants'
 
 export default {
 	name: "Root",
@@ -31,7 +30,7 @@ export default {
 		gameList: [],
 		testComponent: null
 	}),
-	async mounted() {
+	mounted() {
 		if (!SocketService.socket) return this.$router.replace("/login");
 		SocketService.$on("message", this.onMessage);
 		
@@ -42,7 +41,9 @@ export default {
 	},
 	methods: {
 		onMessage(message) {
-			console.log(message);
+			// console.log(message);
+			const payload = message.payload;
+			
 			switch (message.type) {
 				// case MessageType.GAME_EVENT:
 				// 	break;
@@ -57,6 +58,20 @@ export default {
 				// 	break;
 				// case MessageType.PLAYER_EVENT:
 				// 	break;
+				case MessageType.CLIENT_EVENT:
+					switch (payload[EventDetail.EVENT]) {
+						case EventType.GAME_LIST_REFRESH:
+							this.$refs["game-list"].refreshGameList();
+							break;
+						case EventType.GAME_JOIN:
+							window.currentGame = payload[EventDetail.GAME_INFO];
+							this.$router.push(`/game/${window.currentGame[GameInfo.ID]}`);
+							break;
+						case EventType.GAME_LEAVE:
+							window.currentGame = null;
+							break;
+					}
+					break;
 				default: break;
 			}
 		},

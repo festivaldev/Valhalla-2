@@ -1,4 +1,5 @@
 import IGameLogic from "../IGameLogic";
+import { EventDetail, EventType, MessageType } from "../../classes/Constants";
 import Game from "../../classes/Game";
 import User from "../../classes/User";
 import Player from "../../classes/Player";
@@ -27,7 +28,13 @@ export default class ExampleGameLogic implements IGameLogic {
 		return false;
 	}
 	
-	handleGameEvent(user: User, payload: object) {}
+	handleGameEvent(user: User, payload: object) {
+		console.log(payload);
+		this.delegate.broadcastToPlayers(MessageType.GAME_EVENT, {
+			[EventDetail.EVENT]: "debug",
+			fuck: (Math.random() >= 0.5) ? "this" : "that"
+		});
+	}
 	
 	getGameInfo(): object {
 		return {};
