@@ -74,12 +74,12 @@ export default class SocketServer {
 				switch (payload[EventDetail.EVENT]) {
 					case EventType.GAME_CREATE:
 						try {
-							let game = this.gameServer.getGameManager().createGameWithPlayer(user, this.httpServer.getGameBundles()[payload[EventDetail.GAME_BUNDLE]]);
+							let game = this.gameServer.getGameManager().createGameWithPlayer(user, this.httpServer.getGameBundles()[payload[EventDetail.GAME_BUNDLE]], payload[EventDetail.GAME_OPTIONS]);
 							
-							game.updateGameSettings(this.httpServer.getGameBundles()[payload[EventDetail.GAME_BUNDLE]].getDefaultOptions().deserialize(payload[EventDetail.GAME_OPTIONS]));
+							// game.updateGameSettings(this.httpServer.getGameBundles()[payload[EventDetail.GAME_BUNDLE]].getDefaultOptions().deserialize());
 							
-							Logger.log("Destroying game for debug purposes!", LogLevel.DEBUG);
-							this.gameServer.getGameManager().destroyGame(game.getId());
+							// Logger.log("Destroying game for debug purposes!", LogLevel.DEBUG);
+							// this.gameServer.getGameManager().destroyGame(game.getId());
 						} catch (e) {
 							this.sendErrorToSocket(socket, e.message);
 						}

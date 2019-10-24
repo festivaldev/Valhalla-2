@@ -22,7 +22,7 @@ export default class Game {
 	private gameBundle: IGameBundle;
 	private gameLogic: IGameLogic;
 	
-	constructor(id: number, connectedUsers: ConnectedUsers, gameManager: GameManager, gameBundle: IGameBundle) {
+	constructor(id: number, connectedUsers: ConnectedUsers, gameManager: GameManager, gameBundle: IGameBundle, gameOptions: any) {
 		this.id = id;
 		this.connectedUsers = connectedUsers;
 		this.gameManager = gameManager;
@@ -30,7 +30,7 @@ export default class Game {
 		this.gameBundle = gameBundle;
 		this.gameLogic = gameBundle.createGameLogicInstance(this);
 		
-		this.options = gameBundle.getDefaultOptions();
+		this.options = gameBundle.getDefaultOptions().deserialize(gameOptions);
 	}
 	
 	public async start(user: User) {

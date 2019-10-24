@@ -17,18 +17,18 @@ export default class GameManager {
 		this.connectedUsers = connectedUsers;
 	}
 	
-	private createGame(gameBundle: IGameBundle): Game {
+	private createGame(gameBundle: IGameBundle, gameOptions: any): Game {
 		if (this.games.size >= this.maxGames) throw new Error(ErrorCode.TOO_MANY_GAMES);
 		
-		let game: Game = new Game(this.get(), this.connectedUsers, this, gameBundle);
+		let game: Game = new Game(this.get(), this.connectedUsers, this, gameBundle, gameOptions);
 		if (game.getId() < 0) throw new Error(ErrorCode.SERVER_ERROR);
 		
 		this.games.set(game.getId(), game);
 		return game;
 	}
 	
-	public createGameWithPlayer(user: User, gameBundle: IGameBundle): Game {
-		let game: Game = this.createGame(gameBundle);
+	public createGameWithPlayer(user: User, gameBundle: IGameBundle, gameOptions: any): Game {
+		let game: Game = this.createGame(gameBundle, gameOptions);
 		if (game == null) throw new Error(ErrorCode.SERVER_ERROR);
 		
 		try {
