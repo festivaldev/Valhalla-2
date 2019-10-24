@@ -1,0 +1,19 @@
+{
+	// "compileOnSave": true,
+	"compilerOptions": {
+		"allowJs": true,
+		"baseUrl": ".",
+		"esModuleInterop": true,
+		"module": "commonjs",
+		"moduleResolution": "node",
+		"noImplicitAny": true,
+		"outDir": "dist",
+		"paths": {
+			"*": [ "node_modules/*" ]
+		},
+		"sourceMap": true,
+		"target": "es2018"
+	},
+	"include": [ "src/**/*" ],
+	"exclude": [ "src/**/*.gamebundle/client/*" ]
+}
