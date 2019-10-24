@@ -101,6 +101,7 @@ export default class Game {
 			if (this.host == player) {
 				if (this.players.length > 0) {
 					this.host = this.players[0];
+					this.notifyGameOptionsChanged();
 				} else {
 					this.host = null;
 				}
