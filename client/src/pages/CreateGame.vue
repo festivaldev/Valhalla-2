@@ -51,6 +51,7 @@
 import CryptoJS from "crypto-js"
 
 import SocketService from "@/scripts/SocketService"
+import { EventDetail, EventType, GameInfo, MessageType } from "@/scripts/Constants"
 
 import GameOptionsViewer from "@/components/GameOptionsViewer"
 
@@ -77,10 +78,11 @@ export default {
 		},
 		createGame() {
 			SocketService.emit({
-				type: "create-game",
+				type: MessageType.CLIENT_EVENT,
 				payload: {
-					gameBundle: this.selectedGameBundle,
-					gameOptions: JSON.stringify({
+					[EventDetail.EVENT]: EventType.GAME_CREATE,
+					[EventDetail.GAME_BUNDLE]: this.selectedGameBundle,
+					[EventDetail.GAME_OPTIONS]: JSON.stringify({
 						...this.gameOptions,
 						password: this.gameOptions.password ? CryptoJS.SHA512(this.gameOptions.password).toString(CryptoJS.enc.Hex) : undefined
 					})

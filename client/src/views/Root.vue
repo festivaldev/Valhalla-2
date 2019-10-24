@@ -42,20 +42,21 @@ export default {
 	},
 	methods: {
 		onMessage(message) {
+			console.log(message);
 			switch (message.type) {
-				case MessageType.GAME_EVENT:
-					break;
-				case MessageType.GAME_PLAYER_EVENT:
-					switch (message.payload[LongPollResponse.EVENT]) {
-						case LongPollEvent.GAME_JOIN:
-							window.currentGame = message.payload[LongPollResponse.GAME_INFO];
-							this.$router.push(`/game/${message.payload[LongPollResponse.GAME_INFO][GameInfo.ID]}`)
-							break;
-						default: break;
-					}
-					break;
-				case MessageType.PLAYER_EVENT:
-					break;
+				// case MessageType.GAME_EVENT:
+				// 	break;
+				// case MessageType.GAME_PLAYER_EVENT:
+				// 	switch (message.payload[LongPollResponse.EVENT]) {
+				// 		case LongPollEvent.GAME_JOIN:
+				// 			window.currentGame = message.payload[LongPollResponse.GAME_INFO];
+				// 			this.$router.push(`/game/${message.payload[LongPollResponse.GAME_INFO][GameInfo.ID]}`)
+				// 			break;
+				// 		default: break;
+				// 	}
+				// 	break;
+				// case MessageType.PLAYER_EVENT:
+				// 	break;
 				default: break;
 			}
 		},
