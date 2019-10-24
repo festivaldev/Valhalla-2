@@ -1,10 +1,10 @@
 <template>
 	<MetroPage page-id="create-game">
 		<template v-if="this.gameBundles">
-			<MetroTextBlock class="mb-3" text-style="sub-title">Neues Spiel</MetroTextBlock>
-			
 			<div class="row">
-				<div class="col col-12 col-md-3">
+				<div class="col col-12 col-md-4">
+					<MetroTextBlock class="mb-3" text-style="sub-title">Neues Spiel</MetroTextBlock>
+					
 					<MetroComboBox
 						header="Spielmodul"
 						placeholder-text="Spielmodul auswählen"
@@ -20,27 +20,31 @@
 						v-model="gameOptions.password"
 						style="margin-bottom: 8px"
 					/>
-					
-					<MetroTextBlock class="mt-5 mb-3" text-style="sub-title">Spiel-Einstellungen</MetroTextBlock>
-					<MetroTextBox
-						header="Spieler-Limit"
-						:placeholder-text="gameOptions.playerLimit.toString()"
-						v-model.number="gameOptions.playerLimit"
-						:disabled="!selectedGameBundle"
-						style="margin-bottom: 8px"
-					/>
-					
-					<MetroTextBox
-						header="Zuschauer-Limit"
-						:placeholder-text="gameOptions.spectatorLimit.toString()"
-						v-model.number="gameOptions.spectatorLimit"
-						:disabled="!selectedGameBundle"
-						style="margin-bottom: 8px"
-					/>
-					
-					<GameOptionsViewer :game-bundle="this.gameBundles[selectedGameBundle]" :game-options="gameOptions" />
-
 					<MetroButton class="mt-3" :disabled="!selectedGameBundle" @click="createGame">Spiel erstellen</MetroButton>
+				</div>
+				<div class="col col-12 col-md-8" style="padding: 0">
+					<div class="row" style="flex-direction: column">
+						<div class="col col-12 col-md-6" style="flex: 0">
+							<MetroTextBlock class="mb-3" text-style="sub-title">Spiel-Einstellungen</MetroTextBlock>
+							<MetroTextBox
+								header="Spieler-Limit"
+								:placeholder-text="gameOptions.playerLimit.toString()"
+								v-model.number="gameOptions.playerLimit"
+								:disabled="!selectedGameBundle"
+								style="margin-bottom: 8px"
+							/>
+							
+							<MetroTextBox
+								header="Zuschauer-Limit"
+								:placeholder-text="gameOptions.spectatorLimit.toString()"
+								v-model.number="gameOptions.spectatorLimit"
+								:disabled="!selectedGameBundle"
+								style="margin-bottom: 8px"
+							/>
+						</div>
+						
+						<GameOptionsViewer :game-bundle="this.gameBundles[selectedGameBundle]" :game-options="gameOptions" />
+					</div>
 				</div>
 			</div>
 		</template>
@@ -112,6 +116,15 @@ export default {
 	& > .page-content {
 		height: 100%;
 		overflow-y: auto;
+		
+		.row {
+			height: 100%;
+			max-height: 100%;
+			
+			& > .col {
+				padding: 0 5px;
+			}
+		}	
 	}
 }
 </style>

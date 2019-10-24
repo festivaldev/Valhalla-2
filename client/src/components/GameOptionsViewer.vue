@@ -1,7 +1,5 @@
 <template>
-	<div>
-		<component v-if="childComponent" :is="childComponent" />
-	</div>
+	<component v-if="childComponent" :is="childComponent" />
 </template>
 
 <script>
