@@ -59,7 +59,7 @@ export default class Game {
 	public addPlayer(user: User): string {
 		Logger.log(`${user} has joined game ${this.id}`);
 
-		if (this.options.playerLimit >= 3 && this.players.length >= this.options.playerLimit) {
+		if (/*this.options.playerLimit >= 3 && */this.players.length >= this.options.playerLimit) {
 			throw new Error(ErrorCode.GAME_FULL);
 		}
 		
