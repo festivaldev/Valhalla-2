@@ -18,7 +18,7 @@ export default class ExampleGameLogic implements IGameLogic {
 	handleSpectatorJoin?(user: User) {}
 	handleSpectatorLeave?(user: User) {}
 	
-	handleGameStart(user?: User): boolean {
+	async handleGameStart(user?: User): Promise<boolean> {
 		return false;
 	}
 	handleGameStartNextRound?(user?: User): boolean {
