@@ -109,11 +109,9 @@ export default class SocketServer {
 						user.getGame().removePlayer(user);
 						break;
 					case EventType.GAME_START:
-						try {
-							user.getGame().start(user);
-						} catch (e) {
-							this.sendErrorToSocket(socket, e.message);
-						}
+						user.getGame().start(user).catch(error => {
+							this.sendErrorToSocket(socket, error.message);
+						});
 						break;
 				}
 				break;
