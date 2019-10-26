@@ -12,7 +12,7 @@
 <script>
 import SocketService from "@/scripts/SocketService"
 import HTTPVueLoader from "@/scripts/HTTPVueLoader"
-import { EventDetail, EventType, GameBundleInfo, GameInfo, GamePlayerInfo, MessageType } from '@/scripts/Constants'
+import { ErrorCode, ErrorMessage, EventDetail, EventType, GameBundleInfo, GameInfo, GamePlayerInfo, MessageType } from '@/scripts/Constants'
 
 export default {
 	name: "Game",
@@ -54,6 +54,7 @@ export default {
 				SocketService: SocketService,
 				EventDetail: EventDetail,
 				EventType: EventType,
+				GameBundleInfo: GameBundleInfo,
 				GameInfo: GameInfo,
 				GamePlayerInfo: GamePlayerInfo,
 				MessageType: MessageType,
@@ -95,6 +96,15 @@ export default {
 			const payload = message.payload;
 			
 			switch (message.type) {
+				case MessageType.ERROR:
+					if (!this.$refs["child-component"].handleError(payload)) {
+						new metroUI.ContentDialog({
+							title: "Fehler",
+							content: ErrorMessage[Object.keys(ErrorCode).find(key => ErrorCode[key] == payload[EventDetail.ERROR])],
+							commands: [{ text: "Ok", primary: true }]
+						}).show()
+					}
+					break;
 				case MessageType.GAME_EVENT:
 					if (payload[EventDetail.EVENT] == EventType.GAME_OPTIONS_CHANGED) {
 						this.currentGame = payload[EventDetail.GAME_INFO];
