@@ -78,6 +78,7 @@ export default class Game {
 			[EventDetail.EVENT]: EventType.GAME_PLAYER_JOIN,
 			[EventDetail.PLAYER_INFO]: this.getPlayerInfo(player)
 		});
+		this.gameManager.broadcastGameListRefresh();
 		
 		return null;
 	}
@@ -109,6 +110,8 @@ export default class Game {
 			
 			if (this.players.length == 0) {
 				this.gameManager.destroyGame(this.id);
+			} else {
+				this.gameManager.broadcastGameListRefresh();
 			}
 		}
 	}
