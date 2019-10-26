@@ -3,10 +3,12 @@ import fs from "fs";
 import path from "path";
 import serveStatic from "serve-static";
 
-import { GameBundleInfo } from "../../classes/Constants";
 import IGameBundle from "../IGameBundle";
 import ExampleGameLogic from "./ExampleGameLogic";
 import ExampleGameOptions from "./ExampleGameOptions";
+import { GameBundleInfo } from "../../classes/Constants";
+import Game from "../../classes/Game";
+import Player from "../../classes/Player";
 
 export class ExampleGameBundle implements IGameBundle {
 	public name: string = this.constructor.name;
@@ -36,15 +38,15 @@ export class ExampleGameBundle implements IGameBundle {
 		}
 	}
 	
-	public getPlayerInfo(player: any): object {
+	public getPlayerInfo(player: Player): object {
 		return;
 	}
 	
-	public getDefaultOptions(): any {
+	public getDefaultOptions(): ExampleGameOptions {
 		return new ExampleGameOptions();
 	}
 	
-	public createGameLogicInstance(game: any): any {
+	public createGameLogicInstance(game: Game): ExampleGameLogic {
 		return new ExampleGameLogic(game);
 	}
 }
