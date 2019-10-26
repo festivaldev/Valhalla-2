@@ -6,19 +6,19 @@
 					<MetroTextBlock class="mb-3" text-style="sub-title">Neues Spiel</MetroTextBlock>
 					
 					<MetroComboBox
+						class="mb-3"
 						header="Spielmodul"
 						placeholder-text="Spielmodul auswählen"
 						:items-source="bundleItems"
 						v-model="selectedGameBundle"
 						@input="gameBundleSelected"
-						style="margin-bottom: 8px"
 					/>
 					
 					<MetroPasswordBox
+						class="mb-3"
 						header="Passwort"
 						placeholder-text="Optional"
 						v-model="gameOptions.password"
-						style="margin-bottom: 8px"
 					/>
 					<MetroButton class="mt-3" :disabled="!selectedGameBundle" @click="createGame">Spiel erstellen</MetroButton>
 				</div>
@@ -27,19 +27,19 @@
 						<div class="col col-12 col-md-6" style="flex: 0">
 							<MetroTextBlock class="mb-3" text-style="sub-title">Spiel-Einstellungen</MetroTextBlock>
 							<MetroTextBox
+								class="mb-3"
 								header="Spieler-Limit"
 								:placeholder-text="gameOptions.playerLimit.toString()"
 								v-model.number="gameOptions.playerLimit"
 								:disabled="!selectedGameBundle"
-								style="margin-bottom: 8px"
 							/>
 							
 							<MetroTextBox
+								class="mb-3"
 								header="Zuschauer-Limit"
 								:placeholder-text="gameOptions.spectatorLimit.toString()"
 								v-model.number="gameOptions.spectatorLimit"
 								:disabled="!selectedGameBundle"
-								style="margin-bottom: 8px"
 							/>
 						</div>
 						
