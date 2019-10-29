@@ -2,7 +2,7 @@
 	<MetroView view-id="main-view">
 		<MetroPage page-id="game">
 			<component v-if="childComponent" :is="childComponent" ref="child-component" />
-			<div class="scoreboard" :class="{'visible': scoreboardVisible}" v-if="scoreboardComponent">
+			<div class="scoreboard" :class="{'visible': scoreboardVisible}" >
 				<component :is="scoreboardComponent" ref="scoreboard-component" />
 			</div>
 		</MetroPage>
@@ -92,7 +92,6 @@ export default {
 	},
 	methods: {
 		onMessage(message) {
-			console.log(message);
 			const payload = message.payload;
 			
 			switch (message.type) {
@@ -106,9 +105,12 @@ export default {
 					}
 					break;
 				case MessageType.GAME_EVENT:
-					if (payload[EventDetail.EVENT] == EventType.GAME_OPTIONS_CHANGED) {
-						this.currentGame = payload[EventDetail.GAME_INFO];
-						this.$refs["child-component"].currentGame = this.currentGame;
+					switch (payload[EventDetail.EVENT]) {
+						case EventType.GAME_OPTIONS_CHANGED:
+							this.currentGame = payload[EventDetail.GAME_INFO];
+							this.$refs["child-component"].currentGame = this.currentGame;
+							break;
+						default: break;
 					}
 					
 					this.$refs["child-component"].handleGameEvent(payload);
@@ -116,17 +118,28 @@ export default {
 				case MessageType.GAME_PLAYER_EVENT:
 					switch (payload[EventDetail.EVENT]) {
 						case EventType.GAME_PLAYER_JOIN:
-							this.currentGame.players.push(payload[EventDetail.PLAYER_INFO]);
+							this.currentGame.players = payload[EventDetail.PLAYER_INFO];
 							break;
 						case EventType.GAME_PLAYER_LEAVE:
-							this.currentGame.players
-								.splice(this.currentGame.players
-									.indexOf(this.currentGame.players
-										.find(player => player[GamePlayerInfo.SOCKET_ID] === payload[EventDetail.PLAYER_INFO][GamePlayerInfo.SOCKET_ID])), 1);
+							let playerIndex = this.currentGame.players.indexOf(this.currentGame.players.find(player => player[GamePlayerInfo.SOCKET_ID] === payload[EventDetail.PLAYER_INFO][GamePlayerInfo.SOCKET_ID]))
+							
+							if (playerIndex >= 0) {
+								this.currentGame.players
+									.splice(this.currentGame.players
+										.indexOf(this.currentGame.players
+											.find(player => player[GamePlayerInfo.SOCKET_ID] === payload[EventDetail.PLAYER_INFO][GamePlayerInfo.SOCKET_ID])), 1);
+							}
 							break;
+						case EventType.GAME_PLAYER_INFO_CHANGE:
+							let changedPlayer = this.currentGame.players[this.currentGame.players.indexOf(this.currentGame.players.find(player => player[GamePlayerInfo.SOCKET_ID] === payload[EventDetail.PLAYER_INFO][GamePlayerInfo.SOCKET_ID]))];
+							
+							Object.assign(changedPlayer, payload[EventDetail.PLAYER_INFO]);
+							break;
+						default: break;
 					}
 					this.$refs["child-component"].handleGamePlayerEvent(payload);
 					break;
+				default: break;
 			}
 		},
 		
@@ -150,6 +163,10 @@ export default {
 		}
 	},
 	computed: {
+		GameBundleInfo() { return GameBundleInfo },
+		GameInfo() { return GameInfo },
+		GamePlayerInfo() { return GamePlayerInfo },
+		
 		gameBundleGameURL() {
 			if (!this.currentGame) return;
 			

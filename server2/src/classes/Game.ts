@@ -1,12 +1,12 @@
+import IGameBundle from "../GameBundles/IGameBundle";
+import IGameLogic from "../GameBundles/IGameLogic";
+import Logger from "../util/Logger";
 import ConnectedUsers from "./ConnectedUsers";
-import { GameInfo, GamePlayerInfo, ErrorCode, EventDetail, EventType, MessageType } from "./Constants";
+import { ErrorCode, EventDetail, EventType, GameInfo, GamePlayerInfo, MessageType } from "./Constants";
 import GameManager from "./GameManager";
 import GameOptions from "./GameOptions";
 import Player from "./Player";
 import User from "./User";
-import IGameBundle from "../GameBundles/IGameBundle";
-import IGameLogic from "../GameBundles/IGameLogic";
-import Logger from "../util/Logger";
 
 export default class Game {
 	private id: number;
@@ -76,7 +76,7 @@ export default class Game {
 		
 		this.broadcastToPlayers(MessageType.GAME_PLAYER_EVENT, {
 			[EventDetail.EVENT]: EventType.GAME_PLAYER_JOIN,
-			[EventDetail.PLAYER_INFO]: this.getPlayerInfo(player)
+			[EventDetail.PLAYER_INFO]: this.getAllPlayerInfo()
 		});
 		this.gameManager.broadcastGameListRefresh();
 		
@@ -96,7 +96,7 @@ export default class Game {
 			
 			this.broadcastToPlayers(MessageType.GAME_PLAYER_EVENT, {
 				[EventDetail.EVENT]: EventType.GAME_PLAYER_LEAVE,
-				[EventDetail.PLAYER_INFO]: this.getPlayerInfo(player)
+				[EventDetail.PLAYER_INFO]: this.getAllPlayerInfo()
 			});
 			
 			if (this.host == player) {
@@ -128,7 +128,7 @@ export default class Game {
 		
 		this.broadcastToPlayers(MessageType.GAME_PLAYER_EVENT, {
 			[EventDetail.EVENT]: EventType.GAME_SPECTATOR_JOIN,
-			[EventDetail.SPECTATOR_INFO]: this.getSpectatorInfo(user)
+			[EventDetail.SPECTATOR_INFO]: this.getAllSpectatorInfo()
 		});
 	}
 
@@ -143,14 +143,14 @@ export default class Game {
 		
 		this.broadcastToPlayers(MessageType.GAME_PLAYER_EVENT, {
 			[EventDetail.EVENT]: EventType.GAME_SPECTATOR_LEAVE,
-			[EventDetail.SPECTATOR_INFO]: this.getSpectatorInfo(user)
+			[EventDetail.SPECTATOR_INFO]: this.getAllSpectatorInfo()
 		});
 	}
 	
 	
 	
-	public broadcastToPlayers(type: string, masterData: Object) {
-		this.connectedUsers.broadcastToList(this.playersToUsers(), type, masterData);
+	public broadcastToPlayers(type: string, payload: Object) {
+		this.connectedUsers.broadcastToList(this.playersToUsers(), type, payload);
 	}
 
 	public notifyPlayerInfoChange(player: Player) {
