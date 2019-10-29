@@ -1,11 +1,11 @@
 import bcrypt from "bcryptjs";
 import io from "socket.io";
 
+import Logger, { LogLevel } from "../util/Logger";
 import { DisconnectReason, ErrorCode, EventDetail, EventType, MessageType } from "./Constants";
 import GameServer from "./GameServer";
 import HTTPServer from "./HTTPServer";
 import User from "./User";
-import Logger, { LogLevel } from "../util/Logger";
 
 export default class SocketServer {
 	private httpServer: HTTPServer;
@@ -63,7 +63,6 @@ export default class SocketServer {
 	}
 	
 	private handleMessage(socket: io.Socket, data: any) {
-		console.log(data);
 		const payload = data.payload;
 		let user = this.gameServer.getConnectedUsers().getUser(socket.id);
 		

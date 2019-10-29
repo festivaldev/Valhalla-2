@@ -89,16 +89,13 @@ export default class ConnectedUsers {
 		}
 	}
 
-	public broadcastToAll(type: string, masterData: Object) {
-		this.broadcastToList(Object.values(this.users), type, masterData);
+	public broadcastToAll(type: string, payload: Object) {
+		this.broadcastToList(Object.values(this.users), type, payload);
 	}
 
-	public broadcastToList(broadcastTo: Array<User>, type: string, masterData: Object) {
+	public broadcastToList(broadcastTo: Array<User>, type: string, payload: Object) {
 		broadcastTo.forEach(u => {
-			u.emitMessage({
-				type: type,
-				payload: masterData
-			});
+			u.emitMessage(type, payload);
 		});
 	}
 

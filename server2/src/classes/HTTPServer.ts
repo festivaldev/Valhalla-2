@@ -6,9 +6,9 @@ import helmet from "helmet";
 import http, { Server } from "http";
 import httpStatus from "http-status";
 
-import Game from "./Game";
 import IGameBundle from "../GameBundles/IGameBundle";
 import Logger from "../util/Logger";
+import Game from "./Game";
 
 export default class HTTPServer {
 	private expressApp: Express;

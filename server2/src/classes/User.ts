@@ -1,4 +1,5 @@
 import useragent, { Agent } from "useragent";
+
 import { ErrorCode, EventDetail, EventType, MessageType } from "./Constants";
 import Game from "./Game";
 
@@ -25,8 +26,11 @@ export default class User {
 		this.agent = useragent.parse(clientAgent)
 	}
 
-	public emitMessage(message: any) {
-		global.socketServer.socket.to(this.socketId).emit("message", JSON.stringify(message));
+	public emitMessage(type: string, payload: any) {
+		global.socketServer.socket.to(this.socketId).emit("message", JSON.stringify({
+			type: type,
+			payload: payload
+		}));
 	}
 	
 	public getGame(): Game {
@@ -39,12 +43,9 @@ export default class User {
 		}
 
 		this.currentGame = game;
-		this.emitMessage({
-			type: MessageType.CLIENT_EVENT,
-			payload: {
-				[EventDetail.EVENT]: EventType.GAME_JOIN,
-				[EventDetail.GAME_INFO]: game.getInfo()
-			}
+		this.emitMessage(MessageType.CLIENT_EVENT, {
+			[EventDetail.EVENT]: EventType.GAME_JOIN,
+			[EventDetail.GAME_INFO]: game.getInfo()
 		});
 	}
 
@@ -52,11 +53,8 @@ export default class User {
 		if (this.currentGame == game) {
 			this.currentGame = null;
 			
-			this.emitMessage({
-				type: MessageType.CLIENT_EVENT,
-				payload: {
-					[EventDetail.EVENT]: EventType.GAME_LEAVE,
-				}
+			this.emitMessage( MessageType.CLIENT_EVENT, {
+				[EventDetail.EVENT]: EventType.GAME_LEAVE,
 			});
 		}
 	}
