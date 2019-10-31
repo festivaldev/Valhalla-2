@@ -251,13 +251,13 @@ module.exports = {
 			let blackCardText = this.blackCard.rawText.split("_");
 			
 			if (blackCardText.length > 1) {
-			blackCardText.forEach((text, index) => {
-				output += text;
-				
-				if (whiteCards[index]) {
-					output += `<span class="highlight">${whiteCards[index].text.replace(/\n/g, '<br>')}</span>`;
-				}
-			});
+				blackCardText.forEach((text, index) => {
+					output += text;
+					
+					if (whiteCards[index]) {
+						output += `<span class="highlight">${whiteCards[index].text.replace(/\n/g, '<br>')}</span>`;
+					}
+				});
 			} else {
 				output = this.blackCard.rawText;
 			}
@@ -265,7 +265,7 @@ module.exports = {
 			output = output.formatWithArray(whiteCards.map(whiteCard => {
 				return `<span class="highlight">${whiteCard.text.replace(/\n/g, '<br>')}</span>`;
 			}));
-
+			
 			return output;
 		}
 	},
@@ -277,11 +277,9 @@ module.exports = {
 			return this.currentGame[GameInfo.PLAYERS].find(player => player[GamePlayerInfo.SOCKET_ID] == SocketService.socket.id);
 		},
 		isHost() {
-			console.log(this.currentPlayer);
 			return this.currentGame[GameInfo.HOST][GamePlayerInfo.SOCKET_ID] == this.currentPlayer[GamePlayerInfo.SOCKET_ID]
 		},
 		isJudge() {
-			// return this.currentGame[GameInfo.PLAYERS][this.judgeIndex][GamePlayerInfo.SOCKET_ID] == this.currentPlayer[GamePlayerInfo.SOCKET_ID]
 			return this.currentPlayer[CAHGamePlayerInfo.STATUS] == CAHGamePlayerStatus.JUDGE || this.currentPlayer[CAHGamePlayerInfo.STATUS] == CAHGamePlayerStatus.JUDGING;
 		},
 		gameBundle() {
