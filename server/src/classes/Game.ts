@@ -1,12 +1,12 @@
-import Player from "./Player"
-import User from "./User"
-import ConnectedUsers from "./ConnectedUsers";
-import GameManager from "./GameManager";
 import IGameBundle from "../GameBundles/IGameBundle";
 import IGameLogic from "../GameBundles/IGameLogic";
 import Logger from "../util/Logger";
-import { LongPollEvent, LongPollResponse, MessageType, GameInfo, GamePlayerInfo, ErrorCode } from "./Constants";
+import ConnectedUsers from "./ConnectedUsers";
+import { ErrorCode, EventDetail, EventType, GameInfo, GamePlayerInfo, MessageType } from "./Constants";
+import GameManager from "./GameManager";
 import GameOptions from "./GameOptions";
+import Player from "./Player";
+import User from "./User";
 
 export default class Game {
 	private id: number;
@@ -21,8 +21,8 @@ export default class Game {
 	
 	private gameBundle: IGameBundle;
 	private gameLogic: IGameLogic;
-
-	constructor(id: number, connectedUsers: ConnectedUsers, gameManager: GameManager, gameBundle: IGameBundle) {
+	
+	constructor(id: number, connectedUsers: ConnectedUsers, gameManager: GameManager, gameBundle: IGameBundle, gameOptions: any) {
 		this.id = id;
 		this.connectedUsers = connectedUsers;
 		this.gameManager = gameManager;
@@ -30,37 +30,61 @@ export default class Game {
 		this.gameBundle = gameBundle;
 		this.gameLogic = gameBundle.createGameLogicInstance(this);
 		
-		this.options = gameBundle.getOptions();
+		this.options = gameBundle.getDefaultOptions().deserialize(gameOptions);
 	}
-
-	public addPlayer(user: User): ErrorCode {
-		Logger.log(`${user} has joined game ${this.id}`);
-
-		if (this.options.playerLimit >= 3 && this.players.length >= this.options.playerLimit) {
-			return ErrorCode.GAME_FULL
+	
+	public async start(user: User) {
+		if (this.getHost() != user) {
+			throw new Error(ErrorCode.NOT_GAME_HOST);
+		}
+		
+		let started = await this.gameLogic.handleGameStart(user);
+		
+		if (started) {
+			Logger.log(`Starting game ${this.getId()} with ${this.players.length} player(s) (of ${this.options.playerLimit}), ${this.spectators.length} spectator(s) (of ${this.options.spectatorLimit})`);
+			
+			if (this.gameLogic.handleGameStartNextRound) {
+				this.gameLogic.handleGameStartNextRound(user);
+			}
+			this.gameManager.broadcastGameListRefresh();
+		}
+	}
+	
+	public updateGameSettings(newOptions: GameOptions) {
+		this.options.update(newOptions);
+		this.notifyGameOptionsChanged();
+	}
+	
+	
+	public addPlayer(user: User): string {
+		if (/*this.options.playerLimit >= 3 && */this.players.length >= this.options.playerLimit) {
+			throw new Error(ErrorCode.GAME_FULL);
 		}
 		
 		let player: Player = new Player(user);
+		
+		this.gameLogic.handlePlayerJoin(player);
 		this.players.push(player);
 		
 		if (this.host == null) {
 			this.host = player;
 		}
 		
-		this.gameLogic.handlePlayerJoin(player);
+		// this.gameLogic.handlePlayerJoin(player);
 		
-		let errorCode: ErrorCode = user.joinGame(this);
-		if (null != errorCode) return errorCode;
+		user.joinGame(this);
+		Logger.log(`${user} has joined game ${this.id}`);
 		
 		this.broadcastToPlayers(MessageType.GAME_PLAYER_EVENT, {
-			[LongPollResponse.EVENT]: LongPollEvent.GAME_PLAYER_JOIN,
-			[LongPollResponse.PLAYER_INFO]: this.getPlayerInfo(player)
+			[EventDetail.EVENT]: EventType.GAME_PLAYER_JOIN,
+			[EventDetail.PLAYER_INFO]: this.getAllPlayerInfo()
 		});
+		this.gameManager.broadcastGameListRefresh();
 		
 		return null;
 	}
-
-	public removePlayer(user: User): boolean {
+	
+	public removePlayer(user: User) {
 		Logger.log(`Removing ${user} from game ${this.id}`);
 		
 		let player: Player = this.getPlayerForUser(user);
@@ -72,13 +96,14 @@ export default class Game {
 			user.leaveGame(this);
 			
 			this.broadcastToPlayers(MessageType.GAME_PLAYER_EVENT, {
-				[LongPollResponse.EVENT]: LongPollEvent.GAME_PLAYER_LEAVE,
-				[LongPollResponse.PLAYER_INFO]: this.getPlayerInfo(player)
+				[EventDetail.EVENT]: EventType.GAME_PLAYER_LEAVE,
+				[EventDetail.PLAYER_INFO]: this.getAllPlayerInfo()
 			});
 			
 			if (this.host == player) {
 				if (this.players.length > 0) {
 					this.host = this.players[0];
+					this.notifyGameOptionsChanged();
 				} else {
 					this.host = null;
 				}
@@ -86,29 +111,26 @@ export default class Game {
 			
 			if (this.players.length == 0) {
 				this.gameManager.destroyGame(this.id);
+			} else {
+				this.gameManager.broadcastGameListRefresh();
 			}
-			
-			return this.players.length == 0;
 		}
-		
-		return false;
 	}
-
-	public addSpectator(user: User) {
+	
+	public addSpectator(user: User): string {
 		Logger.log(`${user} has joined game ${this.id} as a spectator`);
 		
 		if (this.spectators.length >= this.options.spectatorLimit) {
-			// TODO: Enforce Spectator Limit
+			return ErrorCode.GAME_FULL;
 		}
 		
 		user.joinGame(this);
 		this.spectators.push(user);
 		
 		this.broadcastToPlayers(MessageType.GAME_PLAYER_EVENT, {
-			[LongPollResponse.EVENT]: LongPollEvent.GAME_SPECTATOR_JOIN,
-			[LongPollResponse.SPECTATOR_INFO]: this.getSpectatorInfo(user)
+			[EventDetail.EVENT]: EventType.GAME_SPECTATOR_JOIN,
+			[EventDetail.SPECTATOR_INFO]: this.getAllSpectatorInfo()
 		});
-		
 	}
 
 	public removeSpectator(user: User) {
@@ -121,28 +143,32 @@ export default class Game {
 		user.leaveGame(this);
 		
 		this.broadcastToPlayers(MessageType.GAME_PLAYER_EVENT, {
-			[LongPollResponse.EVENT]: LongPollEvent.GAME_SPECTATOR_LEAVE,
-			[LongPollResponse.SPECTATOR_INFO]: this.getSpectatorInfo(user)
+			[EventDetail.EVENT]: EventType.GAME_SPECTATOR_LEAVE,
+			[EventDetail.SPECTATOR_INFO]: this.getAllSpectatorInfo()
 		});
 	}
-
-	public broadcastToPlayers(type: MessageType, masterData: Object) {
-		this.connectedUsers.broadcastToList(this.playersToUsers(), type, masterData);
+	
+	
+	
+	public broadcastToPlayers(type: string, payload: Object) {
+		this.connectedUsers.broadcastToList(this.playersToUsers(), type, payload);
 	}
 
 	public notifyPlayerInfoChange(player: Player) {
 		this.broadcastToPlayers(MessageType.GAME_PLAYER_EVENT, {
-			[LongPollResponse.EVENT]: LongPollEvent.GAME_PLAYER_INFO_CHANGE,
-			[LongPollResponse.PLAYER_INFO]: this.getPlayerInfo(player)
+			[EventDetail.EVENT]: EventType.GAME_PLAYER_INFO_CHANGE,
+			[EventDetail.PLAYER_INFO]: this.getPlayerInfo(player)
 		});
 	}
 
 	public notifyGameOptionsChanged() {
 		this.broadcastToPlayers(MessageType.GAME_EVENT, {
-			[LongPollResponse.EVENT]: LongPollEvent.GAME_OPTIONS_CHANGED,
-			[LongPollResponse.GAME_INFO]: this.getInfo(true)
+			[EventDetail.EVENT]: EventType.GAME_OPTIONS_CHANGED,
+			[EventDetail.GAME_INFO]: this.getInfo(true)
 		});
 	}
+	
+	
 	
 	public getHost(): User {
 		if (this.host == null) {
@@ -172,26 +198,17 @@ export default class Game {
 		return this.options.password;
 	}
 	
-	public getGameSettings(): GameOptions {
-		return this.options;
-	}
-	
-	public updateGameSettings(newOptions: GameOptions) {
-		this.options.update(newOptions);
-		this.notifyGameOptionsChanged();
-	}
-
 	public getInfo(includePassword: boolean = false): Object {
 		return {
 			[GameInfo.ID]: this.id,
 			[GameInfo.CREATED]: this.created,
 			[GameInfo.HOST]: this.getPlayerInfo(this.host),
-			[GameInfo.GAME_BUNDLE]: this.gameBundle.getInfo(),
+			[GameInfo.GAME_BUNDLE]: this.gameBundle.getBundleInfo(),
 			[GameInfo.GAME_OPTIONS]: this.options.serialize(includePassword),
-			[GameInfo.HAS_PASSWORD]: this.options.password != null && this.options.password.length,
+			[GameInfo.HAS_PASSWORD]: (this.options.password != null && this.options.password.length > 0),
 			[GameInfo.PLAYERS]: this.players.map(player => this.getPlayerInfo(player)),
 			[GameInfo.SPECTATORS]: this.spectators.map(user => user.getNickname()),
-			...this.gameLogic.getInfo()
+			...this.gameLogic.getGameInfo()
 		}
 	}
 	
@@ -201,6 +218,10 @@ export default class Game {
 	
 	public getGameLogic(): IGameLogic {
 		return this.gameLogic;
+	}
+	
+	public getGameOptions(): GameOptions {
+		return this.options;
 	}
 
 	public getAllPlayerInfo(): Array<Object> {
@@ -236,28 +257,5 @@ export default class Game {
 			[GamePlayerInfo.NAME]: spectator.getNickname(),
 			[GamePlayerInfo.SOCKET_ID]: spectator.getSocketId(),
 		}
-	}
-	
-	public getGameManager(): GameManager {
-		return this.gameManager;
-	}
-	
-	public async start(user: User): Promise<boolean> {
-		if (this.getHost() != user) {
-			return false;
-		}
-		
-		let started = await this.gameLogic.handleGameStart(user);
-		
-		if (started) {
-			Logger.log(`Starting game ${this.getId()} with ${this.players.length} player(s) (of ${this.options.playerLimit}), ${this.spectators.length} spectator(s) (of ${this.options.spectatorLimit})`);
-			
-			if (this.gameLogic.handleGameStartNextRound) {
-				this.gameLogic.handleGameStartNextRound(user);
-			}
-			this.gameManager.broadcastGameListRefresh();
-		}
-		
-		return started;
 	}
 }

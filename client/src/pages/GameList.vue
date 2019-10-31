@@ -9,17 +9,17 @@
 				<template slot="item-template" slot-scope="{ local }">
 					<MetroStackPanel orientation="vertical">
 						<div>
-							<MetroTextBlock text-style="base">Spiel von {{ local.host }}</MetroTextBlock>
-							<MetroTextBlock>{{ local.gameInfo["game-bundle"].displayName }}</MetroTextBlock>
+							<MetroTextBlock text-style="base">Spiel von {{ local[GameInfo.HOST][GamePlayerInfo.NAME] }}</MetroTextBlock>
+							<MetroTextBlock>{{ local[GameInfo.GAME_BUNDLE].displayName }}</MetroTextBlock>
 						</div>
 						
 						<div class="row">
 							<div class="col col-6">
-								<MetroTextBlock>Spieler: {{ local.gameInfo.players.length }} / {{ local.gameInfo["game-options"].playerLimit }}</MetroTextBlock>
-								<MetroTextBlock>Zuschauer: {{ local.gameInfo.spectators.length }} / {{ local.gameInfo["game-options"].spectatorLimit }}</MetroTextBlock>
+								<MetroTextBlock>Spieler: {{ local[GameInfo.PLAYERS].length }} / {{ local[GameInfo.GAME_OPTIONS].playerLimit }}</MetroTextBlock>
+								<MetroTextBlock>Zuschauer: {{ local[GameInfo.SPECTATORS].length }} / {{ local[GameInfo.GAME_OPTIONS].spectatorLimit }}</MetroTextBlock>
 							</div>
 							<div class="col col-6" style=" display: flex; justify-content: flex-end; align-items: flex-end;">
-								<MetroSymbolIcon icon="report-hacked" v-if="local.gameInfo['has-password']" />
+								<MetroSymbolIcon icon="report-hacked" v-if="local[GameInfo.HAS_PASSWORD]" />
 							</div>
 						</div>
 					</MetroStackPanel>
@@ -34,7 +34,7 @@ import axios from "axios"
 import CryptoJS from "crypto-js"
 
 import SocketService from "@/scripts/SocketService"
-import { LongPollEvent, LongPollResponse, MessageType } from "@/scripts/Constants"
+import { EventDetail, EventType, GameInfo, GamePlayerInfo, MessageType } from "@/scripts/Constants"
 
 export default {
 	name: "GameList",
@@ -51,28 +51,28 @@ export default {
 	},
 	methods: {
 		onMessage(message) {
-			switch (message.type) {
-				case MessageType.GAME_EVENT:
-					switch (message.payload[LongPollResponse.EVENT]) {
-						case LongPollEvent.GAME_LIST_REFRESH:
-							this.refreshGameList();
-							break;
-						default: break;
-					}
-					break;
-				case MessageType.GAME_PLAYER_EVENT:
-					break;
-				case MessageType.PLAYER_EVENT:
-					break;
-				default: break;
-			}
+			// switch (message.type) {
+			// 	case MessageType.CLIENT_EVENT:
+			// 		switch (message.payload[LongPollResponse.EVENT]) {
+			// 			case EventType.GAME_LIST_REFRESH:
+			// 				this.refreshGameList();
+			// 				break;
+			// 			default: break;
+			// 		}
+			// 		break;
+			// 	case MessageType.GAME_PLAYER_EVENT:
+			// 		break;
+			// 	case MessageType.PLAYER_EVENT:
+			// 		break;
+			// 	default: break;
+			// }
 		},
 		async refreshGameList() {
 			this.gameList = await axios.get(`${SocketService.url}/gamelist`).then(response => response.data);
 		},
 		
 		async gridViewItemClicked(sender, game, index) {
-			if (game.gameInfo["has-password"]) {
+			if (game[GameInfo.HAS_PASSWORD]) {
 				let dialog = new metroUI.ContentDialog({
 					title: "Passwort benötigt",
 					content: () => (
@@ -86,22 +86,28 @@ export default {
 				
 				if (await dialog.showAsync() == metroUI.ContentDialogResult.Primary) {
 					SocketService.emit({
-						type: "join-game",
+						type: MessageType.CLIENT_EVENT,
 						payload: {
-							gameId: game.id,
-							password: CryptoJS.SHA512(dialog.text.password).toString(CryptoJS.enc.Hex)
+							[EventDetail.EVENT]: EventType.GAME_JOIN,
+							[EventDetail.GAME_ID]: game.id,
+							[EventDetail.GAME_PASSWORD]: CryptoJS.SHA512(dialog.text.password).toString(CryptoJS.enc.Hex)
 						}
 					});
 				}
 			} else {
 				SocketService.emit({
-					type: "join-game",
+					type: MessageType.CLIENT_EVENT,
 					payload: {
-                        gameId: game.id,
+                        [EventDetail.EVENT]: EventType.GAME_JOIN,
+						[EventDetail.GAME_ID]: game.id,
 					}
 				});
 			}
 		}
+	},
+	computed: {
+		GameInfo() { return GameInfo },
+		GamePlayerInfo() { return GamePlayerInfo }
 	}
 }
 </script>

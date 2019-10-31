@@ -95,7 +95,7 @@ export default {
             this.hasError = false;
             
 			SocketService.connect(`http://${this.serverAddress}`, {
-				query: `username=${this.username}`,
+				query: `nickname=${this.username}`,
 			});
 		},
 		

@@ -1,46 +1,50 @@
 <template>
 	<MetroPage page-id="create-game">
 		<template v-if="this.gameBundles">
-			<MetroTextBlock class="mb-3" text-style="sub-title">Neues Spiel</MetroTextBlock>
-			
 			<div class="row">
-				<div class="col col-12 col-md-3">
+				<div class="col col-12 col-md-4">
+					<MetroTextBlock class="mb-3" text-style="sub-title">Neues Spiel</MetroTextBlock>
+					
 					<MetroComboBox
+						class="mb-3"
 						header="Spielmodul"
 						placeholder-text="Spielmodul auswählen"
 						:items-source="bundleItems"
 						v-model="selectedGameBundle"
 						@input="gameBundleSelected"
-						style="margin-bottom: 8px"
 					/>
 					
 					<MetroPasswordBox
+						class="mb-3"
 						header="Passwort"
 						placeholder-text="Optional"
 						v-model="gameOptions.password"
-						style="margin-bottom: 8px"
 					/>
-					
-					<MetroTextBlock class="mt-5 mb-3" text-style="sub-title">Spiel-Einstellungen</MetroTextBlock>
-					<MetroTextBox
-						header="Spieler-Limit"
-						:placeholder-text="gameOptions.playerLimit.toString()"
-						v-model.number="gameOptions.playerLimit"
-						:disabled="!selectedGameBundle"
-						style="margin-bottom: 8px"
-					/>
-					
-					<MetroTextBox
-						header="Zuschauer-Limit"
-						:placeholder-text="gameOptions.spectatorLimit.toString()"
-						v-model.number="gameOptions.spectatorLimit"
-						:disabled="!selectedGameBundle"
-						style="margin-bottom: 8px"
-					/>
-					
-					<GameOptionsViewer :game-bundle="this.gameBundles[selectedGameBundle]" :game-options="gameOptions" />
-
 					<MetroButton class="mt-3" :disabled="!selectedGameBundle" @click="createGame">Spiel erstellen</MetroButton>
+				</div>
+				<div class="col col-12 col-md-8" style="padding: 0">
+					<div class="row" style="flex-direction: column">
+						<div class="col col-12 col-md-6" style="flex: 0">
+							<MetroTextBlock class="mb-3" text-style="sub-title">Spiel-Einstellungen</MetroTextBlock>
+							<MetroTextBox
+								class="mb-3"
+								header="Spieler-Limit"
+								:placeholder-text="gameOptions.playerLimit.toString()"
+								v-model.number="gameOptions.playerLimit"
+								:disabled="!selectedGameBundle"
+							/>
+							
+							<MetroTextBox
+								class="mb-3"
+								header="Zuschauer-Limit"
+								:placeholder-text="gameOptions.spectatorLimit.toString()"
+								v-model.number="gameOptions.spectatorLimit"
+								:disabled="!selectedGameBundle"
+							/>
+						</div>
+						
+						<GameOptionsViewer :game-bundle="this.gameBundles[selectedGameBundle]" :game-options="gameOptions" />
+					</div>
 				</div>
 			</div>
 		</template>
@@ -51,6 +55,7 @@
 import CryptoJS from "crypto-js"
 
 import SocketService from "@/scripts/SocketService"
+import { EventDetail, EventType, GameInfo, MessageType } from "@/scripts/Constants"
 
 import GameOptionsViewer from "@/components/GameOptionsViewer"
 
@@ -77,10 +82,11 @@ export default {
 		},
 		createGame() {
 			SocketService.emit({
-				type: "create-game",
+				type: MessageType.CLIENT_EVENT,
 				payload: {
-					gameBundle: this.selectedGameBundle,
-					gameOptions: JSON.stringify({
+					[EventDetail.EVENT]: EventType.GAME_CREATE,
+					[EventDetail.GAME_BUNDLE]: this.selectedGameBundle,
+					[EventDetail.GAME_OPTIONS]: JSON.stringify({
 						...this.gameOptions,
 						password: this.gameOptions.password ? CryptoJS.SHA512(this.gameOptions.password).toString(CryptoJS.enc.Hex) : undefined
 					})
@@ -110,6 +116,15 @@ export default {
 	& > .page-content {
 		height: 100%;
 		overflow-y: auto;
+		
+		.row {
+			height: 100%;
+			max-height: 100%;
+			
+			& > .col {
+				padding: 0 5px;
+			}
+		}	
 	}
 }
 </style>

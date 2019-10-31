@@ -1,22 +1,20 @@
-import IGameLogic from "./IGameLogic";
 import Game from "../classes/Game";
 import GameOptions from "../classes/GameOptions";
+import IGameLogic from "./IGameLogic";
 import Player from "../classes/Player";
 
 export default interface IGameBundle {
+	name: string;
 	displayName: string;
-	bundleId: string;
 	version: string;
 	author: string;
+	
 	route: string;
 	clientDir: string;
 	clientScript: string;
 	
-	getInfo(): Object;
-	
-	getOptions(): GameOptions;
+	getBundleInfo(): object;
 	getPlayerInfo(player: Player): object;
-	
-	gameLogic: IGameLogic;
+	getDefaultOptions(): GameOptions;
 	createGameLogicInstance(game: Game): IGameLogic;
 }

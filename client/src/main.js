@@ -10,6 +10,9 @@ Vue.use(metroUI);
 import Vuelidate from "vuelidate";
 Vue.use(Vuelidate)
 
+import { Plugin as Fragment } from "vue-fragment";
+Vue.use(Fragment);
+
 Vue.config.productionTip = false
 
 new Vue({
