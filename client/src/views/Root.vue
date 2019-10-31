@@ -15,7 +15,7 @@
 
 <script>
 import SocketService from "@/scripts/SocketService"
-import { EventDetail, EventType, GameInfo, MessageType } from "@/scripts/Constants"
+import { ErrorCode, ErrorMessage, EventDetail, EventType, GameInfo, MessageType } from "@/scripts/Constants"
 
 import GameList from "@/pages/GameList"
 import CreateGame from "@/pages/CreateGame"
@@ -45,19 +45,13 @@ export default {
 			const payload = message.payload;
 			
 			switch (message.type) {
-				// case MessageType.GAME_EVENT:
-				// 	break;
-				// case MessageType.GAME_PLAYER_EVENT:
-				// 	switch (message.payload[LongPollResponse.EVENT]) {
-				// 		case LongPollEvent.GAME_JOIN:
-				// 			window.currentGame = message.payload[LongPollResponse.GAME_INFO];
-				// 			this.$router.push(`/game/${message.payload[LongPollResponse.GAME_INFO][GameInfo.ID]}`)
-				// 			break;
-				// 		default: break;
-				// 	}
-				// 	break;
-				// case MessageType.PLAYER_EVENT:
-				// 	break;
+				case MessageType.ERROR:
+					new metroUI.ContentDialog({
+						title: "Fehler",
+						content: ErrorMessage[Object.keys(ErrorCode).find(key => ErrorCode[key] == payload[EventDetail.ERROR])],
+						commands: [{ text: "Ok", primary: true }]
+					}).show()
+					break;
 				case MessageType.CLIENT_EVENT:
 					switch (payload[EventDetail.EVENT]) {
 						case EventType.GAME_LIST_REFRESH:
