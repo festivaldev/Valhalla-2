@@ -15,13 +15,27 @@
 			cardSets: []
 		},
 		startGame: () => {
-			window.SocketService.emit({type:"start-game"});
+			window.SocketService.emit({
+				type: "clientEvent",
+				payload: {
+					event: "gameStart"
+				}
+			});
 		},
 		playCard: (card) => {
 			window.SocketService.emit({
-				type: "game-event",
+				type: "gameEvent",
 				payload: {
-					event: "play-card",
+					event: "playCard",
+					card: card
+				}
+			});
+		},
+		judgeCard: (card) => {
+			window.SocketService.emit({
+				type: "gameEvent",
+				payload: {
+					event: "judgeCard",
 					card: card
 				}
 			});

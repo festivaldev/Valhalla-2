@@ -1,26 +1,19 @@
 import { Express } from "express";
 import fs from "fs";
+import httpStatus from "http-status";
 import path from "path";
-import serveStatic from "serve-static";
 import { Sequelize } from "sequelize";
-import crypto from "crypto";
+import serveStatic from "serve-static";
 
+import { GameBundleInfo } from "../../classes/Constants";
+import Game from "../../classes/Game";
 import IGameBundle from "../IGameBundle";
-import IGameLogic from "../IGameLogic";
 import CAHGameLogic from "./CAHGameLogic";
 import CAHGameOptions from "./CAHGameOptions";
-import Game from "../../classes/Game";
-import GameOptions from "../../classes/GameOptions";
-import Logger, { LogLevel } from "../../util/Logger";
-import BlackDeck from "./classes/BlackDeck";
-import WhiteDeck from "./classes/WhiteDeck";
-import PlayerPlayedCardsTracker from "./classes/PlayerPlayedCardsTracker";
-import Player from "../../classes/Player";
 import CAHPlayer from "./classes/CAHPlayer";
-import { GamePlayerInfo } from "../../classes/Constants";
-import httpStatus from "http-status";
 
 const models = require("./models");
+
 
 Array.prototype.shuffle = function() {
 	for (var i = this.length - 1; i > 0; i--) {
@@ -32,29 +25,17 @@ Array.prototype.shuffle = function() {
 }
 
 export class CAHGameBundle implements IGameBundle {
-	displayName: string = "Cards Against Humanity";
-	bundleId: string = "ml.festival.cah";
-	version: string = "1.0";
-	author: string = "Team FESTIVAL";
-	route: string = "cah";
-	clientDir: string = path.join(__dirname, "/client");
-	clientScript: string = path.join(this.clientDir, "client.js");
+	public name: string = this.constructor.name;
+	public displayName: string = "Cards Against Humanity";
+	public version: string = "1.0";
+	public author: string = "Team FESTIVAL";
+	
+	public route: string = "cah";
+	public clientDir: string = path.join(__dirname, "/client");
+	public clientScript: string = path.join(this.clientDir, "client.js");
 	
 	private sequelize: Sequelize;
 	private database: {[modelId: string]: any};
-	
-	getInfo(): Object {
-		return {
-			name: this.constructor.name,
-			displayName: this.displayName,
-			bundleId: this.bundleId,
-			version: this.version,
-			author: this.author,
-			route: this.route
-		}
-	}
-	
-	gameLogic: IGameLogic;
 	
 	constructor(expressApp: Express) {
 		if (!fs.existsSync(this.clientDir)) {
@@ -64,8 +45,6 @@ export class CAHGameBundle implements IGameBundle {
 		expressApp.use(`/${this.route}`, serveStatic(this.clientDir));
 		
 		if (!fs.existsSync(path.join(__dirname, "cards.sqlite3"))) {
-			// Logger.log("[CAH] did not find card database. Did you forget to symlink into dist?", LogLevel.Error);
-			// return;
 			fs.symlinkSync(path.join(__dirname, "../../../src/GameBundles/CAH.gamebundle/cards.sqlite3"), path.join(__dirname, "cards.sqlite3"));
 		}
 		
@@ -99,15 +78,25 @@ export class CAHGameBundle implements IGameBundle {
 		});
 	}
 	
-	getOptions(): GameOptions {
-		return new CAHGameOptions();
+	public getBundleInfo(): Object {
+		return {
+			[GameBundleInfo.NAME]: this.name,
+			[GameBundleInfo.DISPLAY_NAME]: this.displayName,
+			[GameBundleInfo.VERSION]: this.version,
+			[GameBundleInfo.AUTHOR]: this.author,
+			[GameBundleInfo.ROUTE]: this.route
+		}
 	}
 	
 	public getPlayerInfo(player: CAHPlayer): object {
 		return {}
 	}
 	
-	createGameLogicInstance(game: Game): CAHGameLogic {
-		return new CAHGameLogic(game, this.database);
+	public getDefaultOptions(): CAHGameOptions {
+		return new CAHGameOptions();
+	}
+	
+	public createGameLogicInstance(game: Game): CAHGameLogic {
+		return new CAHGameLogic(game, this.database.models);
 	}
 }

@@ -21,6 +21,7 @@
 		"@types/helmet": "0.0.44",
 		"@types/http-status": "^0.2.30",
 		"@types/node": "^12.11.2",
+		"@types/sequelize": "^4.28.6",
 		"@types/socket.io": "^2.1.4",
 		"@types/useragent": "^2.1.1",
 		"nodemon": "^1.19.4",
@@ -34,7 +35,9 @@
 		"express": "^4.17.1",
 		"helmet": "^3.21.2",
 		"http-status": "^1.4.0",
+		"sequelize": "^5.21.2",
 		"socket.io": "^2.3.0",
+		"sqlite3": "^4.1.0",
 		"useragent": "^2.3.0"
 	}
 }

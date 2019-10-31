@@ -1,26 +1,53 @@
+import { ErrorCode, EventDetail, EventType, MessageType } from "../../classes/Constants";
 import Game from "../../classes/Game";
-import IGameLogic from "../IGameLogic"
-import Logger, { LogLevel } from "../../util/Logger";
-import { MessageType, ErrorCode, LongPollResponse, LongPollEvent, GamePlayerInfo, GameInfo } from "../../classes/Constants";
 import Player from "../../classes/Player";
-
-import CardSet from "./classes/CardSet";
-import BlackDeck from "./classes/BlackDeck";
-import BlackCard from "./classes/BlackCard";
-import WhiteDeck from "./classes/WhiteDeck";
-import WhiteCard from "./classes/WhiteCard";
-import PlayerPlayedCardsTracker from "./classes/PlayerPlayedCardsTracker";
-import CAHPlayer from "./classes/CAHPlayer";
 import User from "../../classes/User";
+import Logger from "../../util/Logger";
+import IGameLogic from "../IGameLogic";
 import CAHGameOptions from "./CAHGameOptions";
+import BlackCard from "./classes/BlackCard";
+import BlackDeck from "./classes/BlackDeck";
+import CAHPlayer from "./classes/CAHPlayer";
+import CardSet from "./classes/CardSet";
+import PlayerPlayedCardsTracker from "./classes/PlayerPlayedCardsTracker";
+import WhiteCard from "./classes/WhiteCard";
+import WhiteDeck from "./classes/WhiteDeck";
 
 enum CAHErrorCode {
-	DO_NOT_HAVE_CARD = "You don't have that card",
-	INVALID_CARD = "Invalid card specified",
-	NO_CARD_SPECIFIED = "No card specified",
-	NOT_JUDGE = "You are not the judge",
-	NOT_YOUR_TURN = "It is not your turn to play a card",
-	PLAYED_ALL_CARDS = "You already played all the necessary cards"
+	DO_NOT_HAVE_CARD = "doNotHaveCard",
+	INVALID_CARD = "invalidCard",
+	INVALID_STATE = "invalidState",
+	NO_CARD_SPECIFIED = "noCardSpecified",
+	NOT_ENOUGH_CARDS = "notEnoughCards",
+	NOT_JUDGE = "notJudge",
+	NOT_YOUR_TURN = "notYourTurn",
+	PLAYED_ALL_CARDS = "playedAllCards"
+}
+
+enum CAHEventDetail {
+	BLACK_CARD = "blackCard",
+	HAND = "hand",
+	JUDGE_INDEX = "judgeIndex",
+	WHITE_CARDS = "whiteCards",
+	WINNING_CARD = "winningCard"
+}
+
+enum CAHEventType {
+	GAME_BLACK_RESHUFFLE = "gameBlackReshuffle",
+	GAME_JUDGE_LEFT = "gameJudgeLeft",
+	GAME_WHITE_RESHUFFLE = "gameWhiteReshuffle",
+	HAND_DEAL = "handDeal",
+	JUDGE_CARD = "judgeCard",
+	PLAY_CARD = "playCard"
+}
+
+enum CAHGameInfo {
+	STATE = "state"
+}
+
+enum CAHGamePlayerInfo {
+	SCORE = "score",
+	STATUS = "status"
 }
 
 enum CAHGamePlayerStatus {
@@ -37,34 +64,18 @@ enum CAHGameState {
 	JUDGING = "judging",
 	LOBBY = "lobby",
 	PLAYING = "playing",
-	ROUND_OVER = "round-over"
-};
-
-enum CAHLongPollResponse {
-	BLACK_CARD = "black-card",
-	HAND = "hand",
-	WHITE_CARDS = "white-cards",
-	WINNING_CARD = "winning-card"
-};
-
-enum CAHLongPollEvent {
-	GAME_BLACK_RESHUFFLE = "game-black-reshuffle",
-	GAME_JUDGE_LEFT = "game-judge-left",
-	GAME_WHITE_RESHUFFLE = "game-white-reshuffle",
-	HAND_DEAL = "hand-deal",
-	JUDGE_CARD = "judge-card",
-	PLAY_CARD = "play-card"
-};
+	ROUND_OVER = "roundOver"
+}
 
 export default class CAHGameLogic implements IGameLogic {
 	delegate: Game;
-	private database: any;
+	private models: { [modelId: string]: any };
 	
-	private players: Map<Player, CAHPlayer> = new Map();
+	private gamePlayers: Map<Player, CAHPlayer> = new Map();
 	private roundPlayers: Array<CAHPlayer> = [];
 	private playedCards: PlayerPlayedCardsTracker = new PlayerPlayedCardsTracker();
-	private blackDeck: BlackDeck = null;
-	private blackCard: BlackCard = null;
+	private blackDeck: BlackDeck;
+	private blackCard: BlackCard;
 	private whiteDeck: WhiteDeck;
 	private state: CAHGameState = CAHGameState.LOBBY;
 	
@@ -72,124 +83,122 @@ export default class CAHGameLogic implements IGameLogic {
 	
 	public static MINIMUM_BLACK_CARDS: number = 50;
 	public static MINIMUM_WHITE_CARDS_PER_PLAYER: number = 20;
-	private static ROUND_INTERMISSION: number = 8 * 1000;
+	private static ROUND_INTERMISSION: number = 5 * 1000;
 	
-	private dealSeq: number = 0;
-	
-	constructor(delegate: Game, database: any) {
+	constructor(delegate: Game, models: { [modelId: string]: any }) {
 		this.delegate = delegate;
-		this.database = database;
+		this.models = models;
 	}
 	
-	public handlePlayerJoin(player: Player) {
-		Logger.log(`${player.getUser().getNickname()} joined example!`, LogLevel.Warn);
-		this.players.set(player, new CAHPlayer(player));
+	handlePlayerJoin(player: Player) {
+		if (this.state != CAHGameState.LOBBY) throw new Error(ErrorCode.ALREADY_STARTED);
+		
+		this.gamePlayers.set(player, new CAHPlayer(player));
 	}
-	
-	public handlePlayerLeave(player: Player) {
+	handlePlayerLeave(player: Player) {
 		let wasJudge: boolean = false;
 		
-		let cahPlayer = this.players.get(player);
+		let cahPlayer: CAHPlayer = this.gamePlayers.get(player);
 		let cards: Array<WhiteCard> = this.playedCards.remove(cahPlayer);
-		if (cards && cards.length) {
-			cards.forEach(card => this.whiteDeck.discard(card));
-		}
 		
-		if (this.roundPlayers.splice(this.roundPlayers.indexOf(cahPlayer), 1)) {
-			if (this.startJudging()) {
-				this.judgingState();
+		if (cards && cards.length) {
+			for (let card of cards) {
+				this.whiteDeck.discard(card);
 			}
 		}
 		
-		if (cahPlayer.getHand().length) {
-			let hand: Array<WhiteCard> = cahPlayer.getHand();
-			hand.forEach(card => this.whiteDeck.discard(card));
+		if (this.roundPlayers.indexOf(cahPlayer) >= 0 && this.roundPlayers.splice(this.roundPlayers.indexOf(cahPlayer), 1)) {
+			if (this.startJudging()) {
+				this.judgingState()
+			}
 		}
 		
-		if (this.getJudge() == player && (this.state == CAHGameState.PLAYING || this.state == CAHGameState.JUDGING)) {
+		if (cahPlayer.getHand().length > 0) {
+			let hand: Array<WhiteCard> = cahPlayer.getHand();
+			for (let card of hand) {
+				this.whiteDeck.discard(card);
+			}
+		}
+		
+		if (this.getJudge() == cahPlayer && (this.state == CAHGameState.PLAYING || this.state == CAHGameState.JUDGING)) {
+			this.judgeIndex--;
+			wasJudge = true;
+			
 			this.delegate.broadcastToPlayers(MessageType.GAME_EVENT, {
-				[LongPollResponse.EVENT]: CAHLongPollEvent.GAME_JUDGE_LEFT,
-				[LongPollResponse.INTERMISSION]: CAHGameLogic.ROUND_INTERMISSION
+				[EventDetail.EVENT]: CAHEventType.GAME_JUDGE_LEFT,
+				[EventDetail.PLAYER_INFO]: [...this.gamePlayers.keys()].map(player => this.delegate.getPlayerInfo(player)),
+				[CAHEventDetail.JUDGE_INDEX]: this.judgeIndex,
+				[EventDetail.INTERMISSION]: CAHGameLogic.ROUND_INTERMISSION
 			});
 			
 			this.returnCardsToHand();
-			
-			this.judgeIndex--;
-			wasJudge = true;
-		} else if (Array.from(this.players.values()).indexOf(cahPlayer) < this.judgeIndex) {
+		} else if ([...this.gamePlayers.keys()].indexOf(player) < this.judgeIndex) {
 			this.judgeIndex--;
 		}
 		
-		if (this.players.size < 3 && this.state != CAHGameState.LOBBY) {
+		this.gamePlayers.delete(player);
+		if (this.gamePlayers.size < 3 && this.state != CAHGameState.LOBBY) {
 			Logger.log(`[CAH] Resetting game ${this.delegate.getId()} due to too few players after someone left.`);
 			this.resetState(true);
-		} else if (wasJudge) {
+		} else if (wasJudge && this.state == CAHGameState.JUDGING) {
 			setTimeout(this.startNextRound.bind(this), CAHGameLogic.ROUND_INTERMISSION);
 		}
 	}
-	
-	public async handleGameStart(): Promise<boolean> {
-		if (this.state != CAHGameState.LOBBY) return false;
-		if (!(await this.hasEnoughCards())) return false;
-		if (!(await this.start())) return false;
+	async handleGameStart(user?: User): Promise<boolean> {
+		if (this.state != CAHGameState.LOBBY) throw new Error(ErrorCode.ALREADY_STARTED);
+		if (!(await this.hasEnoughCards())) throw new Error(CAHErrorCode.NOT_ENOUGH_CARDS);
+		if (!(await this.start())) throw new Error(ErrorCode.SERVER_ERROR);
 		
 		return true;
 	}
-	public handleGameStartNextRound(): boolean {
+	handleGameStartNextRound?(user?: User): boolean {
 		this.startNextRound();
+		
 		return true;
 	}
-	public handleGameEnd() {
-		Logger.log(`Example game with id ${this.delegate.getId()} ended`, LogLevel.Warn);
-	}
-	
-	public handleMessage(user: User, type: MessageType, masterData: any) {
-		console.log(user, type, masterData);
-		// this.delegate.broadcastToPlayers(MessageType.GAME_EVENT, {
-		// 	fuck: "this"
-		// });
-		switch (masterData[LongPollResponse.EVENT]) {
-			case CAHLongPollEvent.PLAY_CARD:
-				let errorCode = this.playCard(user, masterData.card.id, masterData.card.text);
-				console.log(errorCode);
+	handleGameEvent(user: User, payload: any) {
+		switch (payload[EventDetail.EVENT]) {
+			case CAHEventType.PLAY_CARD:
+				this.playCard(user, payload.card.id, payload.card.text);
+				break;
+			case CAHEventType.JUDGE_CARD:
+				this.judgeCard(user, payload.card.id);
 				break;
 			default: break;
 		}
 	}
-	
-	public getInfo(): object {
+	getGameInfo(): object {
 		return {
-			[GameInfo.STATE]: this.state
+			[CAHGameInfo.STATE]: this.getState()
 		}
 	}
-	
-	public getPlayerInfo(player: Player): object {
-		let cahPlayer: CAHPlayer = this.players.get(player);
+	getPlayerInfo(player: Player): object {
+		let cahPlayer: CAHPlayer = this.gamePlayers.get(player);
+		
+		if (!cahPlayer) return null;
 		
 		return {
-			[GamePlayerInfo.SCORE]: cahPlayer.getScore(),
-			[GamePlayerInfo.STATUS]: this.getPlayerStatus(player)
+			[CAHGamePlayerInfo.SCORE]: cahPlayer.getScore(),
+			[CAHGamePlayerInfo.STATUS]: this.getPlayerStatus(player)
 		}
 	}
 	
-	
-	
 	//#region Game Info
-	public getState(): CAHGameState {
+	private getState(): CAHGameState {
 		return this.state;
 	}
 	
 	private getJudge(): CAHPlayer {
-		if (this.judgeIndex >= 0 && this.judgeIndex < this.players.size) {
-			return Array.from(this.players.values())[this.judgeIndex];
+		if (this.judgeIndex >= 0 && this.judgeIndex < this.gamePlayers.size) {
+			return [...this.gamePlayers.values()][this.judgeIndex];
 		}
 		
 		return null;
 	}
 	
 	private getPlayerStatus(player: Player): CAHGamePlayerStatus {
-		let cahPlayer = this.players.get(player);
 		let playerStatus: CAHGamePlayerStatus;
+		let cahPlayer = this.gamePlayers.get(player);
 		
 		switch (this.state) {
 			case CAHGameState.LOBBY:
@@ -201,14 +210,15 @@ export default class CAHGameLogic implements IGameLogic {
 				break;
 			case CAHGameState.PLAYING:
 				if (this.getJudge() == cahPlayer) {
-					playerStatus = CAHGamePlayerStatus.JUDGE
+					playerStatus = CAHGamePlayerStatus.JUDGE;
 				} else {
-					if (this.roundPlayers.indexOf(cahPlayer) < 0) {
+					if (!this.roundPlayers.includes(cahPlayer)) {
 						playerStatus = CAHGamePlayerStatus.IDLE;
 						break;
 					}
+					
 					let playerCards: Array<WhiteCard> = this.playedCards.getCards(player);
-					if (playerCards != null && this.blackCard != null && playerCards.length == this.blackCard.getPick()) {
+					if (playerCards && this.blackCard && playerCards.length == this.blackCard.getPick()) {
 						playerStatus = CAHGamePlayerStatus.IDLE;
 					} else {
 						playerStatus = CAHGamePlayerStatus.PLAYING;
@@ -225,29 +235,27 @@ export default class CAHGameLogic implements IGameLogic {
 			case CAHGameState.ROUND_OVER:
 				if (this.getJudge() == cahPlayer) {
 					playerStatus = CAHGamePlayerStatus.JUDGE;
-				} else if (cahPlayer.getScore() >= (this.delegate.getGameSettings() as CAHGameOptions).scoreGoal) {
+				} else if (cahPlayer.getScore() >= (this.delegate.getGameOptions() as CAHGameOptions).scoreGoal) {
 					playerStatus = CAHGamePlayerStatus.WINNER;
 				} else {
 					playerStatus = CAHGamePlayerStatus.IDLE;
 				}
 				break;
 			default:
-				throw new Error(`Unknown GameState ${this.state}`);
+				throw new Error(`Invalid GameState ${this.state}`);
 		}
 		
 		return playerStatus;
 	}
 	
 	public getRequiredWhiteCardCount(): number {
-		return CAHGameLogic.MINIMUM_WHITE_CARDS_PER_PLAYER * this.delegate.getGameSettings().playerLimit;
+		return CAHGameLogic.MINIMUM_WHITE_CARDS_PER_PLAYER * this.delegate.getGameOptions().playerLimit;
 	}
 	
 	public async hasEnoughCards(): Promise<boolean> {
 		let cardSets: Array<CardSet> = await this.loadCardSets();
 		
-		// if (!cardSets.length) {
-		// 	return false;
-		// }
+		// if (!cardSets.length) return false;
 		
 		let tempBlackDeck: BlackDeck = await this.loadBlackDeck(cardSets);
 		if (tempBlackDeck.totalCount() < CAHGameLogic.MINIMUM_BLACK_CARDS) return false;
@@ -257,16 +265,14 @@ export default class CAHGameLogic implements IGameLogic {
 		
 		return true;
 	}
-	//#endregion
 	
-	//#region Game Methods
 	public async loadCardSets(): Promise<Array<CardSet>> {
 		let cardSets: Array<CardSet> = [];
 		
-		if ((this.delegate.getGameSettings() as CAHGameOptions).cardSetIds.length) {
-			let cardSetList: Array<any> = await this.database.models.Decks.findAll({
+		if ((this.delegate.getGameOptions() as CAHGameOptions).cardSetIds.length) {
+			let cardSetList: Array<any> = await this.models.Decks.findAll({
 				where: {
-					id: (this.delegate.getGameSettings() as CAHGameOptions).cardSetIds
+					id: (this.delegate.getGameOptions() as CAHGameOptions).cardSetIds
 				}
 			});
 			
@@ -280,65 +286,70 @@ export default class CAHGameLogic implements IGameLogic {
 	}
 	
 	public async loadBlackDeck(cardSets: Array<CardSet>): Promise<BlackDeck> {
-		let blackDeck: BlackDeck = new BlackDeck(this.database, cardSets);
+		let blackDeck: BlackDeck = new BlackDeck(this.models, cardSets);
 		await blackDeck.loadCards();
 		
 		return blackDeck;
 	}
 	
 	public async loadWhiteDeck(cardSets: Array<CardSet>): Promise<WhiteDeck> {
-		let whiteDeck: WhiteDeck = new WhiteDeck(this.database, cardSets, (this.delegate.getGameSettings() as CAHGameOptions).blanksInDeck);
+		let whiteDeck: WhiteDeck = new WhiteDeck(this.models, cardSets, (this.delegate.getGameOptions() as CAHGameOptions).blanksInDeck);
 		await whiteDeck.loadCards();
 		
 		return whiteDeck;
 	}
+	//#endregion
 	
+	//#region Game Methods
 	private getNextBlackCard(): BlackCard {
 		try {
 			return this.blackDeck.getNextCard();
-		} catch (e) {
+		} catch (error) {
 			this.blackDeck.reshuffle();
+			
 			this.delegate.broadcastToPlayers(MessageType.GAME_EVENT, {
-				[LongPollResponse.EVENT]: CAHLongPollEvent.GAME_BLACK_RESHUFFLE
+				[EventDetail.EVENT]: CAHEventType.GAME_BLACK_RESHUFFLE
 			});
+			
 			return this.getNextBlackCard();
 		}
 	}
-	
 	private getNextWhiteCard(): WhiteCard {
 		try {
 			return this.whiteDeck.getNextCard();
-		} catch (e) {
+		} catch (error) {
 			this.whiteDeck.reshuffle();
+			
 			this.delegate.broadcastToPlayers(MessageType.GAME_EVENT, {
-				[LongPollResponse.EVENT]: CAHLongPollEvent.GAME_WHITE_RESHUFFLE
+				[EventDetail.EVENT]: CAHEventType.GAME_WHITE_RESHUFFLE
 			});
+			
 			return this.getNextWhiteCard();
 		}
 	}
 	
-	public getBlackCard(): object {
+	public getBlackCard(): any {
 		if (!this.blackCard) return null;
 		
 		return this.blackCard.getClientData();
 	}
 	
-	public getWhiteCards(user: User = null): Array<Array<object>> {
-		let cardData: Array<Array<object>> = [];
-		
+	private getWhiteCards(user: User = null): Array<Array<any>> {
 		if (this.state == CAHGameState.JUDGING) {
-			let shuffledPlayedCards: Array<Array<WhiteCard>> = this.playedCards.cards();
+			let shuffledPlayCards: Array<Array<WhiteCard>> = this.playedCards.cards();
 			
+			let cardData: Array<Array<any>> = [];
+			shuffledPlayCards.shuffle();
 			
-			shuffledPlayedCards.shuffle();
-			shuffledPlayedCards.forEach(cards => {
+			for (let cards of shuffledPlayCards) {
 				cardData.push(this.getWhiteCardData(cards));
-			});
+			}
 			
 			return cardData;
 		} else if (this.state == CAHGameState.PLAYING) {
 			let player: Player = this.delegate.getPlayerForUser(user);
 			
+			let cardData: Array<Array<any>> = [];
 			let faceDownCards: number = this.playedCards.size();
 			
 			if (this.playedCards.hasPlayer(player)) {
@@ -356,45 +367,44 @@ export default class CAHGameLogic implements IGameLogic {
 		}
 	}
 	
-	private getWhiteCardData(cards: Array<WhiteCard>): Array<object> {
-		let data: Array<object> = [];
-		cards.forEach(card => {
+	private getWhiteCardData(cards: Array<WhiteCard>): Array<any> {
+		let data: Array<any> = [];
+		
+		for (let card of cards) {
 			data.push(card.getClientData());
-		});
+		}
 		
 		return data;
 	}
 	
 	private sendCardsToPlayer(player: Player, cards: Array<WhiteCard>) {
-		player.getUser().emitMessage({
-			type: MessageType.GAME_EVENT,
-			payload: {
-				[LongPollResponse.EVENT]: CAHLongPollEvent.HAND_DEAL,
-				[CAHLongPollResponse.HAND]: this.getWhiteCardData(cards)
-			}
+		player.getUser().emitMessage(MessageType.GAME_EVENT, {
+			[EventDetail.EVENT]: CAHEventType.HAND_DEAL,
+			[CAHEventDetail.HAND]: this.getWhiteCardData(cards)
 		});
 	}
 	
 	private returnCardsToHand() {
-		this.playedCards.playedPlayers().forEach(player => {
-			let cahPlayer = this.players.get(player);
-			cahPlayer.getHand().concat(this.playedCards.getCards(player));
-			this.sendCardsToPlayer(player, this.playedCards.getCards(player));
-		});
+		for (let p of this.playedCards.playedPlayers()) {
+			let cahPlayer = this.gamePlayers.get(p);
+			
+			cahPlayer.getHand().concat(this.playedCards.getCards(p));
+			this.sendCardsToPlayer(p, this.playedCards.getCards(p));
+		}
 	}
 	
-	private playCard(user: User, cardId: string, cardText: string): CAHErrorCode {
+	private playCard(user: User, cardId: string, cardText: string) {
 		let player: Player = this.delegate.getPlayerForUser(user);
 		
 		if (player) {
-			let cahPlayer: CAHPlayer = this.players.get(player);
+			let cahPlayer: CAHPlayer = this.gamePlayers.get(player);
 			
 			if (this.getJudge() == cahPlayer || this.state != CAHGameState.PLAYING) {
-				return CAHErrorCode.NOT_YOUR_TURN;
+				throw new Error(CAHErrorCode.NOT_YOUR_TURN);
 			}
 			
 			if (this.playedCards.getCardsCount(player) >= this.blackCard.getPick()) {
-				return CAHErrorCode.PLAYED_ALL_CARDS;
+				throw new Error(CAHErrorCode.PLAYED_ALL_CARDS);
 			}
 			
 			let hand: Array<WhiteCard> = cahPlayer.getHand();
@@ -407,24 +417,24 @@ export default class CAHGameLogic implements IGameLogic {
 						playCard.setText(cardText)
 					}
 					
+					hand.splice(hand.indexOf(card), 1);
+					
 					break;
 				}
-			};
+			}
 			
 			if (playCard) {
 				this.playedCards.addCard(player, playCard);
 				this.delegate.notifyPlayerInfoChange(player);
 				
 				if (this.startJudging()) this.judgingState();
-				return null;
+			} else {
+				throw new Error(CAHErrorCode.DO_NOT_HAVE_CARD);
 			}
-			
-			return CAHErrorCode.DO_NOT_HAVE_CARD;
 		}
-		
-		return null;
 	}
-	private judgeCard(judge: User, cardId: string): CAHErrorCode {
+	
+	private judgeCard(judge: User, cardId: string) {
 		let cardPlayer: Player;
 		let judgePlayer = this.delegate.getPlayerForUser(judge);
 		
@@ -435,84 +445,38 @@ export default class CAHGameLogic implements IGameLogic {
 		}
 		
 		cardPlayer = this.playedCards.getPlayerForId(cardId);
-		if (!cardPlayer) return CAHErrorCode.INVALID_CARD;
+		if (!cardPlayer) throw new Error(CAHErrorCode.INVALID_CARD);
 		
-		this.players.get(cardPlayer).increaseScore();
+		this.gamePlayers.get(cardPlayer).increaseScore();
 		this.state = CAHGameState.ROUND_OVER;
 		
 		let clientCardId: string = this.playedCards.getCards(cardPlayer)[0].getId();
 		this.delegate.broadcastToPlayers(MessageType.GAME_EVENT, {
-			[LongPollResponse.EVENT]: LongPollEvent.GAME_ROUND_COMPLETE,
-			[LongPollResponse.ROUND_WINNER]: cardPlayer.getUser().getNickname(),
-			[CAHLongPollResponse.WINNING_CARD]: clientCardId,
-			[LongPollResponse.INTERMISSION]: CAHGameLogic.ROUND_INTERMISSION
+			[EventDetail.EVENT]: EventType.GAME_ROUND_COMPLETE,
+			[EventDetail.ROUND_WINNER]: this.delegate.getPlayerInfo(cardPlayer),
+			[CAHEventDetail.WINNING_CARD]: clientCardId,
+			[EventDetail.INTERMISSION]: CAHGameLogic.ROUND_INTERMISSION
 		});
 		
 		this.delegate.notifyPlayerInfoChange(this.getJudge().getPlayer());
 		this.delegate.notifyPlayerInfoChange(cardPlayer);
 		
 		setTimeout(() => {
-			if (this.players.get(cardPlayer).getScore() >= (this.delegate.getGameSettings() as CAHGameOptions).scoreGoal) {
+			if (this.gamePlayers.get(cardPlayer).getScore() >= (this.delegate.getGameOptions() as CAHGameOptions).scoreGoal) {
 				this.winState();
 			} else {
 				this.startNextRound();
 			}
 		}, CAHGameLogic.ROUND_INTERMISSION);
-		
-		return null;
-	}
-	//#endregion
-	
-	//#region Game States
-	public async start(): Promise<boolean> {
-		if (this.state != CAHGameState.LOBBY || !(await this.hasEnoughCards())) return false;
-		
-		let started: boolean = false;
-		
-		let numPlayers: number = this.players.size;
-		// if (numPlayers >= 3) {
-			this.judgeIndex = Math.floor(Math.random() * numPlayers);
-			started = true;
-		// }
-		
-		if (started) {
-			let _options = this.delegate.getGameSettings() as CAHGameOptions;
-			Logger.log(`[CAH] Starting game ${this.delegate.getId()} with card sets ${_options.cardSetIds}, ${_options.blanksInDeck} blanks, ${_options.playerLimit} max players, ${_options.spectatorLimit} max spectators, ${_options.scoreGoal} score limit`);
-			
-			let cardSets: Array<CardSet> = await this.loadCardSets();
-			this.blackDeck = await this.loadBlackDeck(cardSets);
-			this.whiteDeck = await this.loadWhiteDeck(cardSets);
-		}	
-		
-		return started;
 	}
 	
-	private startNextRound() {
-		this.playedCards.cards().forEach(cards => {
-			cards.forEach(card => this.whiteDeck.discard(card));
-		});
-		
-		this.judgeIndex++;
-		if (this.judgeIndex >= this.players.size) {
-			this.judgeIndex = 0;
-		}
-		
-		this.roundPlayers = [];
-		Array.from(this.players.values()).forEach(player => {
-			if (player != this.getJudge()) {
-				this.roundPlayers.push(player);
-			}
-		});
-		
-		this.dealState();
-	}
 	private startJudging(): boolean {
 		if (this.state != CAHGameState.PLAYING) return false;
 		
 		if (this.playedCards.size() == this.roundPlayers.length) {
 			let startJudging: boolean = true;
 			
-			for (let cards in this.playedCards.cards()) {
+			for (let cards of this.playedCards.cards()) {
 				if (cards.length != this.blackCard.getPick()) {
 					startJudging = false;
 					break;
@@ -524,58 +488,106 @@ export default class CAHGameLogic implements IGameLogic {
 		
 		return false;
 	}
+	//#endregion
+	
+	//#region Game States
+	private async start(): Promise<boolean> {
+		if (this.state != CAHGameState.LOBBY || !(await this.hasEnoughCards())) return false;
+		
+		let started: boolean = false;
+		let numPlayers = this.gamePlayers.size;
+		// if (numPlayers >= 3) {
+			this.judgeIndex = Math.floor(Math.random() * numPlayers);
+			started = true;
+		// }
+		
+		if (started) {
+			let _options = this.delegate.getGameOptions() as CAHGameOptions;
+			Logger.log(`[CAH] Starting game ${this.delegate.getId()} with card sets ${_options.cardSetIds}, ${_options.blanksInDeck} blanks, ${_options.playerLimit} max players, ${_options.spectatorLimit} max spectators, ${_options.scoreGoal} score limit`);
+			
+			let cardSets: Array<CardSet> = await this.loadCardSets();
+			this.blackDeck = await this.loadBlackDeck(cardSets);
+			this.whiteDeck = await this.loadWhiteDeck(cardSets);
+		}
+		
+		return started;
+	}
+	
+	private startNextRound() {
+		for (let cards of this.playedCards.cards()) {
+			for (let card of cards) {
+				this.whiteDeck.discard(card);
+			}
+		}
+		
+		this.judgeIndex++;
+		if (this.judgeIndex >= this.gamePlayers.size) {
+			this.judgeIndex = 0;
+		}
+		
+		this.roundPlayers = [];
+		for (let player of [...this.gamePlayers.values()]) {
+			if (player != this.getJudge()) {
+				this.roundPlayers.push(player);
+			}
+		}
+		
+		this.dealState();
+	}
 	
 	private dealState() {
-		let playersCopy: Array<Player> = [...Array.from(this.players.keys())];
-		
+		let playersCopy: Array<CAHPlayer> = [...this.gamePlayers.values()];
 		playersCopy.forEach(player => {
-			let cahPlayer = this.players.get(player);
-			let hand: Array<WhiteCard> = cahPlayer.getHand();
-			let newCards: Array<WhiteCard> = [];
+			let hand: Array<WhiteCard> = player.getHand();
 			
-			/* Special Addition: Username cards */
-			if (hand.length == 0) {
+			if (!hand.length) {
 				let card: WhiteCard = new WhiteCard(player.getUser().getSocketId(), player.getUser().getNickname(), null, false)
 				hand.push(card);
-				newCards.push(card);
 			}
 			
 			while (hand.length < 10) {
 				let card: WhiteCard = this.getNextWhiteCard();
 				hand.push(card);
-				newCards.push(card);
 			}
 			
-			this.sendCardsToPlayer(player, newCards);
+			this.sendCardsToPlayer(player, hand);
 		});
 		
 		this.playingState();
 	}
+	
 	private playingState() {
 		this.state = CAHGameState.PLAYING;
 		
 		this.playedCards.clear();
 		
-		if (this.blackCard) this.blackDeck.discard(this.blackCard);
+		if (this.blackCard) {
+			this.blackDeck.discard(this.blackCard);
+		}
 		this.blackCard = this.getNextBlackCard();
 		
 		this.delegate.broadcastToPlayers(MessageType.GAME_EVENT, {
-			[LongPollResponse.EVENT]: LongPollEvent.GAME_STATE_CHANGE,
-			[CAHLongPollResponse.BLACK_CARD]: this.getBlackCard(),
-			[LongPollResponse.GAME_STATE]: CAHGameState.PLAYING
+			[EventDetail.EVENT]: EventType.GAME_STATE_CHANGE,
+			[EventDetail.GAME_STATE]: CAHGameState.PLAYING,
+			[CAHEventDetail.BLACK_CARD]: this.getBlackCard(),
+			[CAHEventDetail.JUDGE_INDEX]: this.judgeIndex,
+			[EventDetail.PLAYER_INFO]: [...this.gamePlayers.keys()].map(player => this.delegate.getPlayerInfo(player))
 		});
 	}
+	
 	private judgingState() {
 		this.state = CAHGameState.JUDGING;
 		
 		this.delegate.broadcastToPlayers(MessageType.GAME_EVENT, {
-			[LongPollResponse.EVENT]: LongPollEvent.GAME_STATE_CHANGE,
-			[LongPollResponse.GAME_STATE]: CAHGameState.JUDGING,
-			[CAHLongPollResponse.WHITE_CARDS]: this.getWhiteCards()
+			[EventDetail.EVENT]: EventType.GAME_STATE_CHANGE,
+			[EventDetail.GAME_STATE]: CAHGameState.JUDGING,
+			[CAHEventDetail.WHITE_CARDS]: this.getWhiteCards(),
+			[EventDetail.PLAYER_INFO]: [...this.gamePlayers.keys()].map(player => this.delegate.getPlayerInfo(player))
 		});
 		
 		this.delegate.notifyPlayerInfoChange(this.getJudge().getPlayer());
 	}
+	
 	private winState() {
 		this.resetState(false);
 	}
@@ -583,9 +595,9 @@ export default class CAHGameLogic implements IGameLogic {
 	private resetState(lostPlayer: boolean) {
 		Logger.log(`Resetting game ${this.delegate.getId()} to lobby (lostPlayer=${lostPlayer})`);
 		
-		this.players.forEach(player => {
-			player.setHand([]);
-			player.resetScore();
+		this.gamePlayers.forEach((cahPlayer, player) => {
+			cahPlayer.setHand([]);
+			cahPlayer.resetScore();
 		});
 		
 		this.whiteDeck = null;
@@ -594,24 +606,26 @@ export default class CAHGameLogic implements IGameLogic {
 		
 		this.playedCards.clear();
 		this.roundPlayers = [];
-		
 		this.state = CAHGameState.LOBBY;
 		
+		let judge: CAHPlayer = this.getJudge();
 		this.judgeIndex = 0;
-		if (this.delegate.getHostPlayer()) {
-			this.delegate.notifyPlayerInfoChange(this.delegate.getHostPlayer())
-		}
-		
-		if (this.getJudge()) {
-			this.delegate.notifyPlayerInfoChange(this.getJudge().getPlayer());
-		}
 		
 		this.delegate.broadcastToPlayers(MessageType.GAME_EVENT, {
-			[LongPollResponse.EVENT]: LongPollEvent.GAME_STATE_CHANGE,
-			[LongPollResponse.GAME_STATE]: CAHGameState.LOBBY,
+			[EventDetail.EVENT]: EventType.GAME_STATE_CHANGE,
+			[EventDetail.GAME_STATE]: CAHGameState.LOBBY,
+			[EventDetail.PLAYER_INFO]: [...this.gamePlayers.keys()].map(player => this.delegate.getPlayerInfo(player))
 		});
 		
-		this.delegate.getGameManager().broadcastGameListRefresh();
+		if (this.delegate.getHostPlayer()) {
+			this.delegate.notifyPlayerInfoChange(this.delegate.getHostPlayer());
+		}
+		
+		if (judge) {
+			this.delegate.notifyPlayerInfoChange(judge);
+		}
+		
+		global.gameManager.broadcastGameListRefresh();
 	}
 	//#endregion
 }

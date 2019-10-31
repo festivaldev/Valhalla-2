@@ -1,10 +1,9 @@
-import WhiteCard from "./WhiteCard";
-import { Sequelize } from "sequelize";
 import CAHGameOptions from "../CAHGameOptions";
 import CardSet from "./CardSet";
+import WhiteCard from "./WhiteCard";
 
 export default class WhiteDeck {
-	private database: Sequelize;
+	private models: { [modelId: string]: any }
 	private cardSets: Array<CardSet>;
 	private numBlanks: number;
 	
@@ -13,14 +12,14 @@ export default class WhiteDeck {
 	
 	private lastBlankCardId: number = -1;
 	
-	constructor(database: Sequelize, cardSets: Array<CardSet>, numBlanks: number) {
-		this.database = database;
+	constructor(models: { [modelId: string]: any }, cardSets: Array<CardSet>, numBlanks: number) {
+		this.models = models;
 		this.cardSets = cardSets;
 		this.numBlanks = numBlanks;
 	}
 	
 	public async loadCards() {
-		return this.database.models.Response.findAll({
+		return this.models.Response.findAll({
 			order: [["createdAt", "DESC"]]
 		}).then((responseList: Array<any>) => {
 			responseList.forEach(responseObj => {
