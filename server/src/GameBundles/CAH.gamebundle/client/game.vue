@@ -132,8 +132,8 @@ const CAHGameState = {
 }
 
 
-String.prototype.formatWithArray = function(format) {
-	console.log(this);
+String.prototype.formatWithArray = function (format) {
+	return this.replace(/\{([0-9])\}/g, (match, number) => typeof format[number] !== "undefined" ? format[number] : match);
 }
 
 module.exports = {
@@ -250,6 +250,7 @@ module.exports = {
 			let output = "";
 			let blackCardText = this.blackCard.rawText.split("_");
 			
+			if (blackCardText.length > 1) {
 			blackCardText.forEach((text, index) => {
 				output += text;
 				
@@ -257,27 +258,15 @@ module.exports = {
 					output += `<span class="highlight">${whiteCards[index].text.replace(/\n/g, '<br>')}</span>`;
 				}
 			});
+			} else {
+				output = this.blackCard.rawText;
+			}
 			
+			output = output.formatWithArray(whiteCards.map(whiteCard => {
+				return `<span class="highlight">${whiteCard.text.replace(/\n/g, '<br>')}</span>`;
+			}));
+
 			return output;
-			// blackCard = blackCard.split("_");
-			// var text = "";
-			// for (var i = 0; i < blackCard.length; i++) {
-			// 	text += blackCard[i];
-
-			// 	if (whiteCards[i]) {
-			// 		text += "<span class=\"highlight\">" + whiteCards[i].text + "</span>";
-			// 	}
-			// }
-
-			// var texts = [];
-			// for (var i = 0; i < whiteCards.length; i++) {
-			// 	texts.push("<span class=\"highlight\">" + whiteCards[i].text + "</span>");
-			// }
-
-			// text = String.formatWithArray(text, texts);
-			// text = text.replace(/\\/g, "");
-
-			// return $sce.trustAsHtml(text);
 		}
 	},
 	computed: {
