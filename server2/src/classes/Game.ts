@@ -57,22 +57,23 @@ export default class Game {
 	
 	
 	public addPlayer(user: User): string {
-		Logger.log(`${user} has joined game ${this.id}`);
-
 		if (/*this.options.playerLimit >= 3 && */this.players.length >= this.options.playerLimit) {
 			throw new Error(ErrorCode.GAME_FULL);
 		}
 		
 		let player: Player = new Player(user);
+		
+		this.gameLogic.handlePlayerJoin(player);
 		this.players.push(player);
 		
 		if (this.host == null) {
 			this.host = player;
 		}
 		
-		this.gameLogic.handlePlayerJoin(player);
+		// this.gameLogic.handlePlayerJoin(player);
 		
 		user.joinGame(this);
+		Logger.log(`${user} has joined game ${this.id}`);
 		
 		this.broadcastToPlayers(MessageType.GAME_PLAYER_EVENT, {
 			[EventDetail.EVENT]: EventType.GAME_PLAYER_JOIN,
