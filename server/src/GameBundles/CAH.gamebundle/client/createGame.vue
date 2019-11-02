@@ -13,6 +13,30 @@
 				:placeholder-text="defaultGameOptions.blanksInDeck.toString()"
 				v-model.number="gameOptions.blanksInDeck"
 			/>
+			
+			<MetroToggleSwitch
+				class="mb-3"
+				header="Schwarze Karten zufällig wählen"
+				on-content="Ja"
+				off-content="Nein"
+				v-model="gameOptions.useRandomBlackCards"
+			/>
+			
+			<MetroToggleSwitch
+				class="mb-3"
+				header="Eigene schwarze Karten erlauben"
+				on-content="Ja"
+				off-content="Nein"
+				v-model="gameOptions.allowCustomBlackCards"
+				:disabled="gameOptions.useRandomBlackCards"
+			/>
+			<MetroTextBox
+				class="mb-3"
+				header="Maximale Anzahl schwarzer Karten"
+				:placeholder-text="defaultGameOptions.numberOfBlackCardsToShow.toString()"
+				v-model.number="gameOptions.numberOfBlackCardsToShow"
+				:disabled="gameOptions.useRandomBlackCards"
+			/>
 		</div>
 		<div class="col col-12 col-md-6" style="flex-basis: 100%">
 			<MetroTextBlock class="mb-3" text-style="sub-title">Decks</MetroTextBlock>
@@ -20,7 +44,7 @@
 				<MetroProgressRing :active="true" />
 			</template>
 			<template v-if="decks.length">
-				<MetroCheckBox v-for="(deck, index) in decks" :name="deck.id" :key="index" :content="deck.name" @input="mapItemChanged($event)" :title="deck.description" />
+				<MetroCheckBox v-for="(deck, index) in decks" :name="deck.id" :key="index" :content="deck.name" @input="mapItemChanged($event)" :disabled="true" :title="deck.description" />
 			</template>
 		</div>
 	</fragment>

@@ -12,6 +12,9 @@
 			playerLimit: 10,
 			spectatorLimit: 10,
 			blanksInDeck: 0,
+			useRandomBlackCards: true,
+			allowCustomBlackCards: false,
+			numberOfBlackCardsToShow: 4,
 			cardSets: []
 		},
 		startGame: () => {
@@ -36,6 +39,15 @@
 				type: "gameEvent",
 				payload: {
 					event: "judgeCard",
+					card: card
+				}
+			});
+		},
+		selectBlackCard: (card) => {
+			window.SocketService.emit({
+				type: "gameEvent",
+				payload: {
+					event: "selectBlackCard",
 					card: card
 				}
 			});

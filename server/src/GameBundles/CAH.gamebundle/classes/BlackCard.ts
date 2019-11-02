@@ -2,11 +2,13 @@ export default class BlackCard {
 	private id: string;
 	private text: string;
 	private deckId: string;
+	private writeIn: boolean;
 	
-	constructor(id: string, text: string, deckId: string) {
+	constructor(id: string, text: string, deckId: string, writeIn: boolean = false) {
 		this.id = id;
 		this.text = text;
 		this.deckId = deckId;
+		this.writeIn = writeIn;
 	}
 	
 	public getId(): string {
@@ -21,8 +23,16 @@ export default class BlackCard {
 		return this.text;
 	}
 	
+	public setText(text: string) {
+		this.text = text;
+	}
+	
 	public getDeckId(): string {
 		return this.deckId;
+	}
+	
+	public isWriteIn(): boolean {
+		return this.writeIn;
 	}
 	
 	public getPick(rawPick: boolean = false): number {
@@ -40,7 +50,8 @@ export default class BlackCard {
 			rawText: this.getRawText(),
 			deckId: this.getDeckId(),
 			pick: this.getPick(),
-			append: this.getPick(true)
+			writeIn: this.isWriteIn(),
+			append: !Boolean(this.getPick(true))
 		}
 	}
 }

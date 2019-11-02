@@ -14,16 +14,29 @@
 		
 		<template v-if="currentGame.state == CAHGameState.PLAYING || currentGame.state == CAHGameState.JUDGING">
 			<div class="game-container">
-				<div class="call-container" v-show="currentGame.state == CAHGameState.PLAYING">
+				<!-- Current Black Card -->
+				<div class="call-container" v-if="currentGame.state == CAHGameState.PLAYING">
 					<div class="current-card" v-if="this.blackCard">
-						<div class="card call-card">
+						<div class="card call-card mb-2 mr-2">
 							<div class="card-content">
 								<MetroTextBlock text-style="sub-title" v-html="blackCard.text.replace(/\n/g, '<br>')"></MetroTextBlock>
+								<MetroTextBlock text-style="caption">Pick {{ blackCard.pick }}</MetroTextBlock>
 							</div>
 						</div>
 					</div>
 				</div>
-				<div class="played-responses-container" v-show="currentGame.state == CAHGameState.JUDGING" :disabled="!isJudge">
+				
+				<!-- Possible Next Black Cards -->
+				<div class="call-container" v-if="currentGame.state == CAHGameState.JUDGING && nextBlackCards">
+					<div class="card call-card mb-2 mr-2" v-for="(card) in nextBlackCards" :key="card.id" @click="selectBlackCard(card)">
+						<div class="card-content">
+							<MetroTextBlock text-style="sub-title" v-html="card.text.replace(/\n/g, '<br>')"></MetroTextBlock>
+						</div>
+					</div>
+				</div>
+				
+				<!-- Played White Cards -->
+				<div class="played-responses-container" v-if="currentGame.state == CAHGameState.JUDGING && !nextBlackCards" :disabled="!isJudge">
 					<div class="card response-card mb-2 mr-2" :class="{'winning': cards[0].id == winningCard}" v-for="(cards, index) in whiteCards" :key="index" @click="judgeCard(cards)">
 						<div class="card-content">
 							<MetroTextBlock text-style="sub-title" v-html="combineCards(cards)" :class="{'contrast-text': cards[0].id == winningCard}" />
@@ -38,10 +51,9 @@
 			</template>
 		
 			<template v-if="currentGame.state == CAHGameState.JUDGING">
-				<MetroTextBlock class="mt-3" v-if="isJudge">Du bist der Juror.<br>Wähle eine Karte, die gewinnen soll.</MetroTextBlock>
+				<MetroTextBlock class="mt-3" v-if="isJudge && !nextBlackCards">Du bist der Juror.<br>Wähle eine Karte, die gewinnen soll.</MetroTextBlock>
+				<MetroTextBlock class="mt-3" v-if="isJudge && nextBlackCards">Du bist der Juror.<br>Wähle eine schwarze Karte für die nächste Runde.</MetroTextBlock>
 				<MetroTextBlock class="mt-3" v-if="!isJudge">Warte auf den Juror, dass er eine Karte auswählt.</MetroTextBlock>
-				
-				
 			</template>
 			
 			<div class="card-holder" v-if="this.hand.length" :disabled="currentGame.state != CAHGameState.PLAYING || isJudge || blackCard.pick <= 0">
@@ -92,6 +104,7 @@ const CAHEventDetail = {
 	BLACK_CARD: "blackCard",
 	HAND: "hand",
 	JUDGE_INDEX: "judgeIndex",
+	NEXT_BLACK_CARDS: "nextBlackCards",
 	WHITE_CARDS: "whiteCards",
 	WINNING_CARD: "winningCard"
 }
@@ -102,7 +115,8 @@ const CAHEventType = {
 	GAME_WHITE_RESHUFFLE: "gameWhiteReshuffle",
 	HAND_DEAL: "handDeal",
 	JUDGE_CARD: "judgeCard",
-	PLAY_CARD: "playCard"
+	PLAY_CARD: "playCard",
+	SELECT_BLACK_CARD: "selectBlackCard"
 }
 
 const CAHGameInfo = {
@@ -145,7 +159,8 @@ module.exports = {
 		hand: [],
 		
 		selectedCard: null,
-		winningCard: null
+		winningCard: null,
+		nextBlackCards: null
 	}),
 	methods: {
 		startGame() {
@@ -193,6 +208,30 @@ module.exports = {
 			
 			this.gameBundle.judgeCard(cards[0]);
 		},
+		async selectBlackCard(card) {
+			if (!this.isJudge) return;
+			
+			if (card.writeIn) {
+				let dialog = new metroUI.ContentDialog({
+					title: "Leere Karte",
+					content: "<div class='text-box'>\
+						<label>Gib den Text ein, der auf der Karte stehen soll:</label>\
+						<textarea type='text' placeholder='Benötigt' name='card-text' required></textarea>\
+					</div>",
+					commands: [{ text: "Abbrechen" }, { text: "Ok", primary: true }]
+				});
+				
+				if (await dialog.showAsync() == metroUI.ContentDialogResult.Primary) {
+					let _card = Object.assign({}, card);
+					_card.text = dialog.text["card-text"];
+					this.gameBundle.selectBlackCard(_card);
+				}
+			} else {
+				this.gameBundle.selectBlackCard(card);
+			}
+			
+			this.nextBlackCards = null;
+		},
 		handleError(payload) {
 			if (Object.values(CAHErrorCode).indexOf(payload[EventDetail.ERROR]) < 0) return false;
 			
@@ -231,6 +270,8 @@ module.exports = {
 							title: "Du hast einen Punkt bekommen",
 							content: "Deine Karte wurde vom Juror ausgewählt. Dafür bekommst du einen Punkt."
 						}).show()
+					} else if (this.isJudge && payload[CAHEventDetail.NEXT_BLACK_CARDS]) {
+						this.nextBlackCards = payload[CAHEventDetail.NEXT_BLACK_CARDS];
 					}
 
 					break;
@@ -247,26 +288,28 @@ module.exports = {
 		},
 		
 		combineCards(whiteCards) {
-			let output = "";
-			let blackCardText = this.blackCard.rawText.split("_");
-			
-			if (blackCardText.length > 1) {
-				blackCardText.forEach((text, index) => {
-					output += text;
-					
-					if (whiteCards[index]) {
-						output += `<span class="highlight">${whiteCards[index].text.replace(/\n/g, '<br>')}</span>`;
-					}
-				});
+			if (this.blackCard.append) {
+				return `${this.blackCard.rawText}<br><span class="highlight">${whiteCards[0].text.replace(/\n/g, '<br>')}</span>`;
 			} else {
-				output = this.blackCard.rawText;
+				let output = "",
+					index = 0,
+					interpolationMap = {};
+				
+				output = this.blackCard.rawText.replace(/_|\{([0-9])\}/g, (match, number) => {
+					
+					if (number) {
+						if (interpolationMap[number] === undefined) {
+							interpolationMap[number] = index++;
+						}
+						
+						return `<span class="highlight">${whiteCards[interpolationMap[number]].text.replace(/\n/g, '<br>')}</span>`;
+					}
+					
+					return `<span class="highlight">${whiteCards[index++].text.replace(/\n/g, '<br>')}</span>`;
+				});
+				
+				return output.replace(/\n/g, '<br>');
 			}
-			
-			output = output.formatWithArray(whiteCards.map(whiteCard => {
-				return `<span class="highlight">${whiteCard.text.replace(/\n/g, '<br>')}</span>`;
-			}));
-			
-			return output;
 		}
 	},
 	computed: {
@@ -349,16 +392,16 @@ module.exports = {
 }
 
 .game-container .call-container {
-	width: 250px;
+	display: flex;
+	flex-wrap: wrap;
+	min-width: 250px;
 	height: 100%;
-	margin-right: 5px;
 }
 
 .game-container .played-responses-container {
 	flex: 1;
 	display: flex;
 	flex-wrap: wrap;
-	margin-left: 5px;
 }
 
 .game-container .played-responses-container[disabled] {

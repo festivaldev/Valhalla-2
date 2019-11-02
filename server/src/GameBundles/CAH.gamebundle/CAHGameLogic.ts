@@ -28,6 +28,7 @@ enum CAHEventDetail {
 	BLACK_CARD = "blackCard",
 	HAND = "hand",
 	JUDGE_INDEX = "judgeIndex",
+	NEXT_BLACK_CARDS = "nextBlackCards",
 	WHITE_CARDS = "whiteCards",
 	WINNING_CARD = "winningCard"
 }
@@ -38,7 +39,8 @@ enum CAHEventType {
 	GAME_WHITE_RESHUFFLE = "gameWhiteReshuffle",
 	HAND_DEAL = "handDeal",
 	JUDGE_CARD = "judgeCard",
-	PLAY_CARD = "playCard"
+	PLAY_CARD = "playCard",
+	SELECT_BLACK_CARD = "selectBlackCard"
 }
 
 enum CAHGameInfo {
@@ -77,6 +79,8 @@ export default class CAHGameLogic implements IGameLogic {
 	private blackDeck: BlackDeck;
 	private blackCard: BlackCard;
 	private whiteDeck: WhiteDeck;
+	private nextBlackCards: Array<BlackCard> = [];
+	private selectedBlackCard: BlackCard;
 	private state: CAHGameState = CAHGameState.LOBBY;
 	
 	private judgeIndex: number = 0;
@@ -164,6 +168,9 @@ export default class CAHGameLogic implements IGameLogic {
 			case CAHEventType.JUDGE_CARD:
 				this.judgeCard(user, payload.card.id);
 				break;
+			case CAHEventType.SELECT_BLACK_CARD:
+				this.selectBlackCard(user, payload.card.id, payload.card.text);
+				break;
 			default: break;
 		}
 	}
@@ -184,6 +191,9 @@ export default class CAHGameLogic implements IGameLogic {
 	}
 	
 	//#region Game Info
+	private get gameOptions(): CAHGameOptions {
+		return (this.delegate.getGameOptions() as CAHGameOptions)
+	}
 	private getState(): CAHGameState {
 		return this.state;
 	}
@@ -235,7 +245,7 @@ export default class CAHGameLogic implements IGameLogic {
 			case CAHGameState.ROUND_OVER:
 				if (this.getJudge() == cahPlayer) {
 					playerStatus = CAHGamePlayerStatus.JUDGE;
-				} else if (cahPlayer.getScore() >= (this.delegate.getGameOptions() as CAHGameOptions).scoreGoal) {
+				} else if (cahPlayer.getScore() >= this.gameOptions.scoreGoal) {
 					playerStatus = CAHGamePlayerStatus.WINNER;
 				} else {
 					playerStatus = CAHGamePlayerStatus.IDLE;
@@ -269,10 +279,10 @@ export default class CAHGameLogic implements IGameLogic {
 	public async loadCardSets(): Promise<Array<CardSet>> {
 		let cardSets: Array<CardSet> = [];
 		
-		if ((this.delegate.getGameOptions() as CAHGameOptions).cardSetIds.length) {
+		if (this.gameOptions.cardSetIds.length) {
 			let cardSetList: Array<any> = await this.models.Decks.findAll({
 				where: {
-					id: (this.delegate.getGameOptions() as CAHGameOptions).cardSetIds
+					id: this.gameOptions.cardSetIds
 				}
 			});
 			
@@ -293,7 +303,7 @@ export default class CAHGameLogic implements IGameLogic {
 	}
 	
 	public async loadWhiteDeck(cardSets: Array<CardSet>): Promise<WhiteDeck> {
-		let whiteDeck: WhiteDeck = new WhiteDeck(this.models, cardSets, (this.delegate.getGameOptions() as CAHGameOptions).blanksInDeck);
+		let whiteDeck: WhiteDeck = new WhiteDeck(this.models, cardSets, this.gameOptions.blanksInDeck);
 		await whiteDeck.loadCards();
 		
 		return whiteDeck;
@@ -312,6 +322,43 @@ export default class CAHGameLogic implements IGameLogic {
 			});
 			
 			return this.getNextBlackCard();
+		}
+	}
+	private getPossibleNextBlackCards(): Array<any> {
+		if (this.gameOptions.useRandomBlackCards) return null;
+		
+		try {
+			let possibleBlackCards: Array<BlackCard> = [];
+			
+			if (!this.gameOptions.allowCustomBlackCards) {
+				while (possibleBlackCards.length < this.gameOptions.numberOfBlackCardsToShow) {
+					let blackCard: BlackCard = this.blackDeck.getNextCard();
+					
+					this.nextBlackCards.push(blackCard);
+					possibleBlackCards.push(blackCard);
+				}
+			} else {
+				while (possibleBlackCards.length < this.gameOptions.numberOfBlackCardsToShow - 1) {
+					let blackCard: BlackCard = this.blackDeck.getNextCard();
+					
+					this.nextBlackCards.push(blackCard);
+					possibleBlackCards.push(blackCard);
+				}
+				
+				possibleBlackCards.push(new BlackCard("blank-black", "_", null, true));
+			}
+			
+			console.log(possibleBlackCards);
+			this.nextBlackCards = possibleBlackCards;
+			return possibleBlackCards.map(card => card.getClientData());
+		} catch (error) {
+			this.blackDeck.reshuffle();
+			
+			this.delegate.broadcastToPlayers(MessageType.GAME_EVENT, {
+				[EventDetail.EVENT]: CAHEventType.GAME_BLACK_RESHUFFLE
+			});
+			
+			return this.getPossibleNextBlackCards();
 		}
 	}
 	private getNextWhiteCard(): WhiteCard {
@@ -439,9 +486,9 @@ export default class CAHGameLogic implements IGameLogic {
 		let judgePlayer = this.delegate.getPlayerForUser(judge);
 		
 		if (this.getJudge().getPlayer() != judgePlayer) {
-			return CAHErrorCode.NOT_JUDGE;
+			throw new Error(CAHErrorCode.NOT_JUDGE);
 		} else if (this.state != CAHGameState.JUDGING) {
-			return CAHErrorCode.NOT_YOUR_TURN;
+			throw new Error(CAHErrorCode.NOT_YOUR_TURN);
 		}
 		
 		cardPlayer = this.playedCards.getPlayerForId(cardId);
@@ -450,24 +497,54 @@ export default class CAHGameLogic implements IGameLogic {
 		this.gamePlayers.get(cardPlayer).increaseScore();
 		this.state = CAHGameState.ROUND_OVER;
 		
+		let playerDidWinGame: boolean = this.gamePlayers.get(cardPlayer).getScore() >= this.gameOptions.scoreGoal;
+		
 		let clientCardId: string = this.playedCards.getCards(cardPlayer)[0].getId();
 		this.delegate.broadcastToPlayers(MessageType.GAME_EVENT, {
 			[EventDetail.EVENT]: EventType.GAME_ROUND_COMPLETE,
 			[EventDetail.ROUND_WINNER]: this.delegate.getPlayerInfo(cardPlayer),
 			[CAHEventDetail.WINNING_CARD]: clientCardId,
+			[CAHEventDetail.NEXT_BLACK_CARDS]: (playerDidWinGame && !this.gameOptions.useRandomBlackCards) ? null : this.getPossibleNextBlackCards(),
 			[EventDetail.INTERMISSION]: CAHGameLogic.ROUND_INTERMISSION
 		});
 		
 		this.delegate.notifyPlayerInfoChange(this.getJudge().getPlayer());
 		this.delegate.notifyPlayerInfoChange(cardPlayer);
 		
-		setTimeout(() => {
-			if (this.gamePlayers.get(cardPlayer).getScore() >= (this.delegate.getGameOptions() as CAHGameOptions).scoreGoal) {
-				this.winState();
-			} else {
-				this.startNextRound();
+		if (playerDidWinGame || this.gameOptions.useRandomBlackCards) {
+			setTimeout(() => {
+				if (playerDidWinGame) {
+					this.winState();
+				} else {
+					this.startNextRound();
+				}
+			}, CAHGameLogic.ROUND_INTERMISSION);
+		}
+	}
+	
+	private selectBlackCard(judge: User, cardId: string, cardText: string) {
+		let judgePlayer = this.delegate.getPlayerForUser(judge);
+		
+		if (this.getJudge().getPlayer() != judgePlayer) {
+			throw new Error(CAHErrorCode.NOT_JUDGE);
+		} else if (this.state != CAHGameState.ROUND_OVER) {
+			throw new Error(CAHErrorCode.NOT_YOUR_TURN);
+		}
+		
+
+		this.selectedBlackCard = this.nextBlackCards.find(card => card.getId() === cardId);
+		if (!this.selectedBlackCard) throw new Error(CAHErrorCode.INVALID_CARD);
+
+		for (let card of this.nextBlackCards) {
+			if (card.getId() !== cardId && card.getId() !== "blank-black") {
+				this.blackDeck.discard(card);
+			} else if (card.getId() === "blank-black") {
+				card.setText(cardText);
 			}
-		}, CAHGameLogic.ROUND_INTERMISSION);
+		}
+		
+		this.blackDeck.reshuffle();
+		this.startNextRound();
 	}
 	
 	private startJudging(): boolean {
@@ -502,8 +579,7 @@ export default class CAHGameLogic implements IGameLogic {
 		// }
 		
 		if (started) {
-			let _options = this.delegate.getGameOptions() as CAHGameOptions;
-			Logger.log(`[CAH] Starting game ${this.delegate.getId()} with card sets ${_options.cardSetIds}, ${_options.blanksInDeck} blanks, ${_options.playerLimit} max players, ${_options.spectatorLimit} max spectators, ${_options.scoreGoal} score limit`);
+			Logger.log(`[CAH] Starting game ${this.delegate.getId()} with card sets ${this.gameOptions.cardSetIds}, ${this.gameOptions.blanksInDeck} blanks, ${this.gameOptions.playerLimit} max players, ${this.gameOptions.spectatorLimit} max spectators, ${this.gameOptions.scoreGoal} score limit`);
 			
 			let cardSets: Array<CardSet> = await this.loadCardSets();
 			this.blackDeck = await this.loadBlackDeck(cardSets);
@@ -564,7 +640,13 @@ export default class CAHGameLogic implements IGameLogic {
 		if (this.blackCard) {
 			this.blackDeck.discard(this.blackCard);
 		}
-		this.blackCard = this.getNextBlackCard();
+		
+		if (this.selectedBlackCard) {
+			this.blackCard = this.selectedBlackCard;
+			this.selectedBlackCard = null;
+		} else {
+			this.blackCard = this.getNextBlackCard();
+		}
 		
 		this.delegate.broadcastToPlayers(MessageType.GAME_EVENT, {
 			[EventDetail.EVENT]: EventType.GAME_STATE_CHANGE,
