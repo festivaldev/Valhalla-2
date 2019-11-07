@@ -14,16 +14,17 @@ import { UnknownCard } from "./models/Card";
 import { Deck, DeckOptions } from "./Deck";
 import { DrawNumeralCard, NumeralCard } from "./cards";
 import { PlayableMove } from "./models/PlayableMove";
+import { GameBundleInfo } from "../../classes/Constants";
 
-export class UnoGameBundle implements IGameBundle {
-	author: string = "Team FESTIVAL";
+export class UnoGameBundle implements IGameBundle {    
+	author: string = "vainamov";
+	displayName: string = "Uyesn't";
+    name: string = this.constructor.name;
+	version: string = "0.0.2";
+
+	route: string = "uno";
 	clientDir: string = path.join(__dirname, "/client");
 	clientScript: string = path.join(this.clientDir, "client.js");
-	bundleId: string = "ml.festival.uno";
-	displayName: string = "Uno";
-	gameLogic: IGameLogic;
-	route: string = "uno";
-	version: string = "0.0.1";	
 	
 	constructor(expressApp: Express) {
         expressApp.use(`/${this.route}`, Middleware);
@@ -32,26 +33,25 @@ export class UnoGameBundle implements IGameBundle {
         d.generateCards(10);
 	}
 	
-	getInfo(): object {
+	createGameLogicInstance(game: Game): UnoGameLogic {
+		return new UnoGameLogic(game);
+	}
+	
+	getBundleInfo(): object {
 		return {
-			author: this.author,
-			bundleId: this.bundleId,
-			displayName: this.displayName,
-			name: this.constructor.name,
-			route: this.route,
-			version: this.version,
+			[GameBundleInfo.NAME]: this.name,
+			[GameBundleInfo.DISPLAY_NAME]: this.displayName,
+			[GameBundleInfo.VERSION]: this.version,
+			[GameBundleInfo.AUTHOR]: this.author,
+			[GameBundleInfo.ROUTE]: this.route
 		}
     }
 	
-	getOptions(): GameOptions {
+	getDefaultOptions(): GameOptions {
 		return new UnoGameOptions();
 	}
     
     getPlayerInfo(player: Player): object {
         return {};
     }
-	
-	createGameLogicInstance(game: Game): UnoGameLogic {
-		return new UnoGameLogic(game);
-	}
 }

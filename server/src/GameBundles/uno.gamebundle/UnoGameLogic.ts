@@ -1,8 +1,8 @@
-import IGameLogic from "../IGameLogic"
-import Player from "../../classes/Player";
-import Logger, { LogLevel } from "../../util/Logger";
 import Game from "../../classes/Game";
-import { MessageType } from "../../classes/Constants";
+import IGameLogic from "../IGameLogic"
+import Logger, { LogLevel } from "../../util/Logger";
+import Player from "../../classes/Player";
+import User from "../../classes/User";
 
 export default class UnoGameLogic implements IGameLogic {
     delegate: Game;
@@ -11,36 +11,34 @@ export default class UnoGameLogic implements IGameLogic {
         this.delegate = delegate;
     }
 
-    public getInfo(): object {
+    public getGameInfo(): object {
         return {};
-    }
+	}
 
     public getPlayerInfo(player: Player): object {
         return {};
     }
 	
-	public handlePlayerJoin(player: Player) {
-        Logger.log(`${player.getUser().getNickname()} joined Uno!`, LogLevel.Warn);
-        Logger.log(this.delegate.getInfo().toString(), LogLevel.Debug);
-	}
-	
-	public handlePlayerLeave(player: Player) {
-		Logger.log(`${player.getUser().getNickname()} left Uno!`, LogLevel.Warn);
-	}
-	
 	public handleGameEnd() {
-		Logger.log(`Uno game with id ${this.delegate.getId()} ended`, LogLevel.Warn);
+		Logger.log(`Uno game with id ${this.delegate.getId()} ended`, LogLevel.WARN);
     }
+
+    public handleGameEvent(user: User, payload: any) {
+		
+	}
     
-	public handleGameStart(): boolean {
-		Logger.log(`Starting Uno game with id ${this.delegate.getId()}`, LogLevel.Warn);
+	public async handleGameStart(user?: User): Promise<boolean> {
+		Logger.log(`Starting Uno game with id ${this.delegate.getId()}`, LogLevel.WARN);
 		
 		return true;
 	}
 	
-	public handleMessage(type: MessageType, masterData: Object) {
-		this.delegate.broadcastToPlayers(MessageType.GAME_EVENT, {
-			fuck: (Math.random() < .5 ? "this" : "that")
-		});
+	public handlePlayerJoin(player: Player) {
+        Logger.log(`${player.getUser().getNickname()} joined Uno!`, LogLevel.WARN);
+        Logger.log(this.delegate.getInfo().toString(), LogLevel.DEBUG);
+	}
+	
+	public handlePlayerLeave(player: Player) {
+		Logger.log(`${player.getUser().getNickname()} left Uno!`, LogLevel.WARN);
 	}
 }
