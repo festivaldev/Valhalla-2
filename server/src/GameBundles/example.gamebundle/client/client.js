@@ -8,9 +8,8 @@
 (() => {
 	Object.assign(window.gameBundles["ExampleGameBundle"], {
 		defaultGameOptions: {
-			scoreLimit: 8,
-			playerLimit: 10,
-			spectatorLimit: 10,
+			playerLimit: 1,
+			spectatorLimit: 1,
 			exampleProperty: true
 		},
 		test: () => {

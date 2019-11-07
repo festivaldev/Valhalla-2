@@ -1,22 +1,22 @@
-import { GameOptionData } from "./Constants";
 import bcrypt from "bcryptjs";
+import { GameOptionData } from "../classes/Constants";
 
 export default class GameOptions {
-	public playerLimit: number = 10;
-	public spectatorLimit: number = 10;
-	public password: string = "";
+	public password: string;
+	public playerLimit: number;
+	public spectatorLimit: number;
 	
-	public update(newOptions: GameOptions) {
-		this.playerLimit = newOptions.playerLimit;
-		this.spectatorLimit = newOptions.spectatorLimit;
-		this.password = newOptions.password;
+	public update(options: GameOptions) {
+		this.password = options.password;
+		this.playerLimit = options.playerLimit;
+		this.spectatorLimit = options.spectatorLimit;
 	}
 	
-	public serialize(includePassword: boolean = false) {
+	public serialize(includePassword: boolean = false): object {
 		let info: {[key: string]: any} = {
 			[GameOptionData.PLAYER_LIMIT]: this.playerLimit,
-			[GameOptionData.SPECTATOR_LIMIT]: this.spectatorLimit,
-		}
+			[GameOptionData.SPECTATOR_LIMIT]: this.spectatorLimit
+		};
 		
 		if (includePassword) {
 			info[GameOptionData.PASSWORD] = this.password;

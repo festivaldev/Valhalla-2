@@ -15,11 +15,10 @@
 
 <script>
 import SocketService from "@/scripts/SocketService"
-import { MessageType } from "@/scripts/Constants"
+import { ErrorCode, ErrorMessage, EventDetail, EventType, GameInfo, MessageType } from "@/scripts/Constants"
 
 import GameList from "@/pages/GameList"
 import CreateGame from "@/pages/CreateGame"
-import { GameInfo, LongPollResponse, LongPollEvent } from '@/scripts/Constants'
 
 export default {
 	name: "Root",
@@ -31,7 +30,7 @@ export default {
 		gameList: [],
 		testComponent: null
 	}),
-	async mounted() {
+	mounted() {
 		if (!SocketService.socket) return this.$router.replace("/login");
 		SocketService.$on("message", this.onMessage);
 		
@@ -42,20 +41,30 @@ export default {
 	},
 	methods: {
 		onMessage(message) {
-			console.log(message);
+			// console.log(message);
+			const payload = message.payload;
+			
 			switch (message.type) {
-				case MessageType.GAME_EVENT:
+				case MessageType.ERROR:
+					new metroUI.ContentDialog({
+						title: "Fehler",
+						content: ErrorMessage[Object.keys(ErrorCode).find(key => ErrorCode[key] == payload[EventDetail.ERROR])],
+						commands: [{ text: "Ok", primary: true }]
+					}).show()
 					break;
-				case MessageType.GAME_PLAYER_EVENT:
-					switch (message.payload[LongPollResponse.EVENT]) {
-						case LongPollEvent.GAME_JOIN:
-							window.currentGame = message.payload[LongPollResponse.GAME_INFO];
-							this.$router.push(`/game/${message.payload[LongPollResponse.GAME_INFO][GameInfo.ID]}`)
+				case MessageType.CLIENT_EVENT:
+					switch (payload[EventDetail.EVENT]) {
+						case EventType.GAME_LIST_REFRESH:
+							this.$refs["game-list"].refreshGameList();
 							break;
-						default: break;
+						case EventType.GAME_JOIN:
+							window.currentGame = payload[EventDetail.GAME_INFO];
+							this.$router.push(`/game/${window.currentGame[GameInfo.ID]}`);
+							break;
+						case EventType.GAME_LEAVE:
+							window.currentGame = null;
+							break;
 					}
-					break;
-				case MessageType.PLAYER_EVENT:
 					break;
 				default: break;
 			}

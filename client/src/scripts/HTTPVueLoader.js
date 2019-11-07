@@ -58,6 +58,7 @@ const ScriptContext = class {
 		try {
 			Function("exports", "require", "HTTPVuewLoader", "module", this.content).call(this.module.exports, this.module.exports, childModuleRequire, childLoader, this.module);
 		} catch (exception) {
+			console.error(exception);
 			console.log("i'm too lazy to implement errors");
 			if (!('lineNumber' in exception)) {
 				return Promise.reject(exception);
@@ -264,7 +265,6 @@ HTTPVueLoader.install = (Vue) => {
 	Vue.mixin({
 		beforeCreate: function() {
 			let components = this.$options.components;
-			console.log(components);
 		}
 	})
 };

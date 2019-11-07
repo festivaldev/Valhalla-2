@@ -1,8 +1,6 @@
 import Game from "../classes/Game";
 import Player from "../classes/Player";
 import User from "../classes/User";
-import { MessageType } from "../classes/Constants";
-
 
 export default interface IGameLogic {
 	delegate: Game;
@@ -13,13 +11,13 @@ export default interface IGameLogic {
 	handleSpectatorJoin?(user: User): void;
 	handleSpectatorLeave?(user: User): void;
 	
-	handleGameStart(user?: User): boolean;
+	handleGameStart(user?: User): Promise<boolean>;
 	handleGameStartNextRound?(user?: User): boolean;
-	handleGameRoundComplete?(): void;
-	handleGameEnd(): void;
+	handleGameStop?(user?: User): boolean;
 	
-	handleMessage(type: MessageType, masterData: Object): void;
+	handleGameEvent(user: User, payload: object): void;
 	
-	getInfo(): object;
+	getGameInfo(): object;
 	getPlayerInfo(player: Player): object;
+	getSpectatorInfo?(user: User): object;
 }

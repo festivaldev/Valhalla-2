@@ -1,20 +1,19 @@
 {
-    "compilerOptions": {
-        "module": "commonjs",
-        "esModuleInterop": true,
-        "target": "ES2018",
-        "noImplicitAny": true,
-        "moduleResolution": "node",
-        "sourceMap": true,
-        "outDir": "dist",
-        "baseUrl": ".",
-        "paths": {
-            "*": [
-                "node_modules/*"
-            ]
-		}
-    },
-    "include": [
-        "src/**/*"
-    ]
+	// "compileOnSave": true,
+	"compilerOptions": {
+		"allowJs": true,
+		"baseUrl": ".",
+		"esModuleInterop": true,
+		"module": "commonjs",
+		"moduleResolution": "node",
+		"noImplicitAny": true,
+		"outDir": "dist",
+		"paths": {
+			"*": [ "node_modules/*" ]
+		},
+		"sourceMap": true,
+		"target": "es2018"
+	},
+	"include": [ "src/**/*" ],
+	"exclude": [ "src/**/*.gamebundle/client/*" ]
 }

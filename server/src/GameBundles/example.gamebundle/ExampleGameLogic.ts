@@ -1,44 +1,48 @@
-import IGameLogic from "../IGameLogic"
-import Player from "../../classes/Player";
-import Logger, { LogLevel } from "../../util/Logger";
+import IGameLogic from "../IGameLogic";
+import { EventDetail, EventType, MessageType } from "../../classes/Constants";
 import Game from "../../classes/Game";
-import { MessageType } from "../../classes/Constants";
+import User from "../../classes/User";
+import Player from "../../classes/Player";
+
 
 export default class ExampleGameLogic implements IGameLogic {
-	delegate: Game;
+	public delegate: Game;
 	
-	constructor(delegate: Game) {
-		this.delegate = delegate;
+	constructor(game: Game) {
+		this.delegate = game;
 	}
 	
-	public handlePlayerJoin(player: Player) {
-		Logger.log(`${player.getUser().getNickname()} joined example!`, LogLevel.Warn);
+	handlePlayerJoin(player: Player) {}
+	handlePlayerLeave(player: Player) {}
+	
+	handleSpectatorJoin?(user: User) {}
+	handleSpectatorLeave?(user: User) {}
+	
+	async handleGameStart(user?: User): Promise<boolean> {
+		return false;
+	}
+	handleGameStartNextRound?(user?: User): boolean {
+		return false;
+	}
+	handleGameStop?(user?: User): boolean {
+		return false;
 	}
 	
-	public handlePlayerLeave(player: Player) {
-		Logger.log(`${player.getUser().getNickname()} left example!`, LogLevel.Warn);
-	}
-	
-	public handleGameStart(): boolean {
-		Logger.log(`Starting example game with id ${this.delegate.getId()}`, LogLevel.Warn);
-		
-		return true;
-	}
-	public handleGameEnd() {
-		Logger.log(`Example game with id ${this.delegate.getId()} ended`, LogLevel.Warn);
-	}
-	
-	public handleMessage(type: MessageType, masterData: Object) {
+	handleGameEvent(user: User, payload: object) {
+		console.log(payload);
 		this.delegate.broadcastToPlayers(MessageType.GAME_EVENT, {
-			fuck: "this"
+			[EventDetail.EVENT]: "debug",
+			fuck: (Math.random() >= 0.5) ? "this" : "that"
 		});
 	}
 	
-	public getInfo() : object {
+	getGameInfo(): object {
 		return {};
 	}
-	
-	public getPlayerInfo(player: Player): object {
-		return {}
+	getPlayerInfo(player: Player): object {
+		return {};
+	}
+	getSpectatorInfo?(user: User): object {
+		return {};
 	}
 }
