@@ -24,12 +24,20 @@ const router = new Router({
 			path: '/game/:gameId',
 			name: 'game',
 			component: () => import(/*webpackChunkName: "game" */ './views/Game.vue')
-		}
+        },
+        {
+            path: "/uno",
+            name: "uno",
+            component: () => import(/*webpackChunkName: "uno" */ "@/views/Uno/index.vue"),
+            meta: {
+                noAuth: true
+            }
+        }
 	]
 });
 
 router.beforeEach((to, from, next) => {
-	if (!SocketService.socket && to.path != "/login") {
+    if (!SocketService.socket && !to.meta.noAuth) {
 		return next({
 			path: "/login",
 			replace: true
