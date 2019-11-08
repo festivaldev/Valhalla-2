@@ -16,14 +16,14 @@ export class Deck {
 
         for (let i = 0; i < count; i++) {
             let r = Math.random();
-            //Math.random() * myArray.length>>0
+            // Math.random() * array.length >> 0
 
             let blueprint = this.options.blueprints.find(_ => _.r - _.c <= r && r < _.r);
 
             let variant = blueprint.vt[Math.random() * blueprint.vt.length >> 0];
             let value = blueprint.vl[Math.random() * blueprint.vl.length >> 0];
 
-            console.log(`Card: ${i} / Roll: ${r} / Blueprint: ${blueprint.f.name} (${(blueprint.r - blueprint.c).toFixed(4)} - ${blueprint.r.toFixed(4)}) / VT: ${variant} / VL: ${value}`);
+            // console.log(`Card: ${i} / Roll: ${r} / Blueprint: ${blueprint.f.name} (${(blueprint.r - blueprint.c).toFixed(4)} - ${blueprint.r.toFixed(4)}) / VT: ${variant} / VL: ${value}`);
         }
 
         return cards;

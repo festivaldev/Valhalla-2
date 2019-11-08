@@ -30,7 +30,7 @@ export class UnoGameBundle implements IGameBundle {
         expressApp.use(`/${this.route}`, Middleware);
         
         const d = new Deck();
-        d.generateCards(10);
+        d.generateCards(20000);
 	}
 	
 	createGameLogicInstance(game: Game): UnoGameLogic {
