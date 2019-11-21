@@ -5,7 +5,14 @@
 		</template>
 		
 		<template slot="pane-footer">
-			<MetroNavigationViewItem icon="more" content="Mehr" @click.native="showMoreMenu" />
+			<MetroNavigationViewItem icon="more" content="Mehr">
+				<template slot="flyout">
+					<MetroMenuFlyout>
+						<MetroMenuFlyoutItem icon="game" text="Spiel erstellen" @click.native="createGame" />
+						<MetroMenuFlyoutItem icon="refresh" text="Aktualisieren" @click.native="refreshGameList" />
+					</MetroMenuFlyout>
+				</template>
+			</MetroNavigationViewItem>
 		</template>
 	
 		<GameList ref="game-list" />
@@ -69,26 +76,11 @@ export default {
 				default: break;
 			}
 		},
-		showMoreMenu(e) {
-			let test = "ExampleGameBundle";
-			
-			let flyout = new metroUI.MenuFlyout({
-				items: [{
-					icon: "game",
-					text: "Spiel erstellen",
-					action: () => {
-						this.$refs["navigation-view"].navigate("create-game");
-					}
-				}, {
-					icon: "refresh",
-					text: "Aktualisieren",
-					action: () => {
-						this.$refs["game-list"].refreshGameList();
-					}
-				}]
-			});
-			
-			flyout.showAt(e.target);
+		createGame() {
+			this.$refs["navigation-view"].navigate("create-game");
+		},
+		refreshGameList() {
+			this.$refs["game-list"].refreshGameList();
 		}
 	},
 	computed: {
