@@ -29,7 +29,7 @@ const router = new Router({
 });
 
 router.beforeEach((to, from, next) => {
-	if (!SocketService.socket && to.path != "/login") {
+	if (!SocketService.socket && !to.meta.noAuth) {
 		return next({
 			path: "/login",
 			replace: true
