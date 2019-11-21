@@ -11,8 +11,8 @@
 				<MetroTextBlock>Auf den Host warten, um das Spiel zu starten.</MetroTextBlock>
 			</template>
 		</template>
-		
-		<template v-if="currentGame.state == CAHGameState.PLAYING || currentGame.state == CAHGameState.JUDGING">
+
+		<template v-if="(currentGame.state == CAHGameState.DEALING && isJudge) || currentGame.state == CAHGameState.PLAYING || currentGame.state == CAHGameState.JUDGING">
 			<div class="game-container">
 				<!-- Current Black Card -->
 				<div class="call-container" v-if="currentGame.state == CAHGameState.PLAYING">
@@ -27,7 +27,7 @@
 				</div>
 				
 				<!-- Possible Next Black Cards -->
-				<div class="call-container" v-if="currentGame.state == CAHGameState.JUDGING && nextBlackCards">
+				<div class="call-container" v-if="currentGame.state == CAHGameState.DEALING && nextBlackCards">
 					<div class="card call-card mb-2 mr-2" v-for="(card) in nextBlackCards" :key="card.id" @click="selectBlackCard(card)">
 						<div class="card-content">
 							<MetroTextBlock text-style="sub-title" v-html="card.text.replace(/\n/g, '<br>')"></MetroTextBlock>
@@ -139,6 +139,7 @@ const CAHGamePlayerStatus = {
 }
 
 const CAHGameState = {
+	DEALING: "dealing",
 	JUDGING: "judging",
 	LOBBY: "lobby",
 	PLAYING: "playing",
@@ -148,6 +149,18 @@ const CAHGameState = {
 
 String.prototype.formatWithArray = function (format) {
 	return this.replace(/\{([0-9])\}/g, (match, number) => typeof format[number] !== "undefined" ? format[number] : match);
+}
+
+const throttle = function (callback, limit) {
+	let timeout;
+	return function() {
+		if (!timeout) {
+			callback.call(this, ...arguments);
+			timeout = setTimeout(() => {
+				timeout = null;
+			}, limit);
+		}
+	}
 }
 
 module.exports = {
@@ -176,7 +189,7 @@ module.exports = {
 			
 			this.selectedCard = card;
 		},
-		async playCard(card) {
+		playCard: throttle(async function (card) {
 			if (this.currentGame[GameInfo.PLAYERS][this.judgeIndex][GamePlayerInfo.SOCKET_ID] == this.currentPlayer[GamePlayerInfo.SOCKET_ID]) return;
 
 			this.selectedCard = null;
@@ -202,7 +215,7 @@ module.exports = {
 			} else {
 				this.gameBundle.playCard(card);
 			}
-		},
+		}, 500),
 		judgeCard(cards) {
 			if (this.currentGame[GameInfo.PLAYERS][this.judgeIndex][GamePlayerInfo.SOCKET_ID] != this.currentPlayer[GamePlayerInfo.SOCKET_ID]) return;
 			
@@ -252,6 +265,10 @@ module.exports = {
 					this.whiteCards = payload[CAHEventDetail.WHITE_CARDS];
 					
 					this.judgeIndex = payload[CAHEventDetail.JUDGE_INDEX] != undefined ? payload[CAHEventDetail.JUDGE_INDEX] : this.judgeIndex;
+					
+					if (this.isJudge && payload[CAHEventDetail.NEXT_BLACK_CARDS]) {
+						this.nextBlackCards = payload[CAHEventDetail.NEXT_BLACK_CARDS];
+					}
 					
 					break;
 				case CAHEventType.HAND_DEAL:
