@@ -1,5 +1,4 @@
 <script>
-
     String.prototype.formatWithArray = function (format) {
         return this.replace(/\{([0-9])\}/g, (match, number) => typeof format[number] !== "undefined" ? format[number] : match);
     }
@@ -7,8 +6,40 @@
     export default {
         name: "UnoGame",
         data: () => ({
+
             handExpanded: false,
+            placedCards: [
+                {
+                    variant: 0,
+                    value: "2",
+                }
+            ],
         }),
+        methods: {
+            getColorForCard(card) {
+                switch (card.variant) {
+                    case 0: return "blue";
+                    case 1: return "black";
+                    case 2: return "green";
+                }
+            },
+            getEdgeTextForCard(card) {
+                return card.value;
+            },
+            getTextForCard(card) {
+                return card.value;
+            },
+            pushRandomCard() {
+                if (this.placedCards.length == 4) {
+                    this.placedCards.shift();
+                }
+
+                this.placedCards.push({
+                    variant: Math.floor(Math.random() * 2) + 1,
+                    value: Math.floor(Math.random() * 10) + 1,
+                });
+            },
+        },
     }
 </script>
 
@@ -16,6 +47,17 @@
 	<div id="uno-game-view">
 		
         <section class="board">
+
+            <div class="deck">
+                <template v-for="(card, index) in placedCards">
+                    <div :class="`card ${getColorForCard(card)} placed`" :key="`placed-card-${index}`">
+                        <p class="corner">{{ getEdgeTextForCard(card) }}</p>
+                        <p class="corner bottom">{{ getEdgeTextForCard(card) }}</p>
+                        <div class="backdrop"></div>
+                        <p class="content">{{ getTextForCard(card) }}</p>
+                    </div>
+                </template>
+            </div>
 
         </section>
 
@@ -25,28 +67,9 @@
                 <span v-else class="icon">&#xE011;</span>
             </MetroButton>
 
-            <MetroTextBlock text="Aktuelle Karte" text-style="base" style="line-height: 33.2px; padding-left: 6px" />
-
-            <div class="card black">
-                <p class="corner symbol">&#xE790;</p>
-                <p class="corner bottom symbol">&#xE790;</p>
-                <div class="backdrop"></div>
-                <p class="content symbol">&#xE790;</p>
-            </div>
-
-            <div class="card blue">
-                <p class="corner">×4</p>
-                <p class="corner bottom">×4</p>
-                <div class="backdrop"></div>
-                <p class="content">×4</p>
-            </div>
-
-            <div class="card green">
-                <p class="corner">E</p>
-                <p class="corner bottom">E</p>
-                <div class="backdrop"></div>
-                <p class="content">E</p>
-            </div>
+            <MetroButton @click="pushRandomCard()">
+                <span class="icon">&#xE011;</span>
+            </MetroButton>
         </section>
 
 	</div>
@@ -76,6 +99,7 @@
 
     .board {
         flex-grow: 1;
+        position: relative;
     }
 
     .hand {
@@ -170,6 +194,77 @@
             &.symbol {
                 font-size: 6em;
                 line-height: 2.8;
+            }
+        }
+    }
+
+    @keyframes placeCard {
+        from {
+            transform: rotate(0) translate3d(100%, 200%, 0);
+        }
+        to {
+            transform: rotate(0) translate3d(0, 0, 0);
+        }
+    }
+
+    @keyframes placeCard2 {
+        from {
+            transform: rotate(0) translate3d(100%, 200%, 0);
+        }
+        to {
+            transform: rotate(7deg) translate3d(0, 0, 0);
+        }
+    }
+
+    @keyframes placeCard3 {
+        from {
+            transform: rotate(0) translate3d(100%, 200%, 0);
+        }
+        to {
+            transform: rotate(-4deg) translate3d(0, 0, 0);
+        }
+    }
+
+    .deck {
+        left: 50%;
+        position: absolute;
+        top: 50%;
+        transform: translate3d(-50%, -50%, 0);
+
+        .card {
+            border-color: #EEE;
+            transform: translate3d(100%, 200%, 0);
+            animation: placeCard .5s cubic-bezier(.08, .82, .17, 1);
+
+            &:not(:first-of-type) {
+                left: 0;
+                position: absolute;
+                top: 0;
+            }
+
+            &:nth-of-type(2) {
+                animation: placeCard2 .5s cubic-bezier(.08, .82, .17, 1);
+            }
+
+            &:nth-of-type(3) {
+                animation: placeCard3 .5s cubic-bezier(.08, .82, .17, 1);
+            }
+
+            &:nth-of-type(n+4) {                
+                animation: placeCard .5s cubic-bezier(.08, .82, .17, 1);
+            }
+
+            &.placed:first-of-type,
+            &.placed:nth-of-type(n+4) {
+                transform: translate3d(0, 0, 0);
+            }
+
+            &.placed:nth-of-type(2) {
+                transform: rotate(7deg);
+            }
+
+            &.placed:nth-of-type(3) {
+                transform: rotate(-4deg);
             }
         }
     }

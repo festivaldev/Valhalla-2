@@ -1,4 +1,5 @@
 import { Card } from "../models/Card";
+import UnoGameLogic from "../UnoGameLogic";
 
 export class SkipTurnCard extends Card {
 
@@ -6,11 +7,11 @@ export class SkipTurnCard extends Card {
         super(type);
     }
 
-    public handleFollowing(following: Card): void {
+    public handleFollowing(following: Card, logic: UnoGameLogic): void {
         
     }
 
-    public handlePreceding(preceding: Card): void {
+    public handlePreceding(preceding: Card, logic: UnoGameLogic): void {
         
     }
 

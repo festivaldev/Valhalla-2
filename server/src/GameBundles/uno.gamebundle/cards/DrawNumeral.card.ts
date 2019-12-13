@@ -1,4 +1,5 @@
 import { Card } from "../models/Card";
+import UnoGameLogic from "../UnoGameLogic";
 
 export class DrawNumeralCard extends Card {
 
@@ -6,12 +7,17 @@ export class DrawNumeralCard extends Card {
         super(type);
     }
 
-    public handleFollowing(following: Card): void {
-        
+    public handleFollowing(following: Card, logic: UnoGameLogic): void {
+        switch (following.constructor.name) {
+            case "DrawNumeralCard":
+            case "DrawNumeralWildCard":
+                break;
+            default: 
+        }
     }
 
-    public handlePreceding(preceding: Card): void {
-        
+    public handlePreceding(preceding: Card, logic: UnoGameLogic): void {
+        logic.drawStack += this.value;
     }
 
 }

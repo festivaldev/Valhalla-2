@@ -23,7 +23,10 @@ export class Deck {
             let variant = blueprint.vt[Math.random() * blueprint.vt.length >> 0];
             let value = blueprint.vl[Math.random() * blueprint.vl.length >> 0];
 
-            // console.log(`Card: ${i} / Roll: ${r} / Blueprint: ${blueprint.f.name} (${(blueprint.r - blueprint.c).toFixed(4)} - ${blueprint.r.toFixed(4)}) / VT: ${variant} / VL: ${value}`);
+            cards.set([this.options.blueprints.indexOf(blueprint), variant, value], i * 3);
+
+            console.log(`Card: ${i} / Roll: ${r} / Blueprint: ${blueprint.f.name} (${(blueprint.r - blueprint.c).toFixed(4)} - ${blueprint.r.toFixed(4)}) / VT: ${variant} / VL: ${value}`);
+            console.debug(blueprint.p);
         }
 
         return cards;
@@ -37,16 +40,26 @@ export class Deck {
         return Object.assign(new this.options.blueprints[card.type].f(card.type), card);
     }
 
+    public readCards(data: Uint8Array): Card[] {
+        let cards: Card[] = [];
+
+        for (let i = 0; i < data.length; i += 3) {
+            cards.push(this.getTypedCard(new UnknownCard(data[i], data[i + 1], data[i + 2])));
+        }
+
+        return cards;
+    }
 }
 
 const moveAny = "* | * > * | *";
 const moveEqualVl = "* | * > * | =";
 const moveEqualVt = "* | * > = | *";
 
-export class DeckOptions {
+export class DeckOptions {    
+    public colors: ColorVariant[] = [ColorVariant.Red, ColorVariant.Blue, ColorVariant.Yellow, ColorVariant.Green];
 
     public blueprints: Blueprint<Card>[] = [
-        new Blueprint(NumeralCard, [ColorVariant.Red, ColorVariant.Blue, ColorVariant.Yellow, ColorVariant.Green], "0-9", [
+        new Blueprint(NumeralCard, this.colors, "0-9", [
             new PlayableMove(NumeralCard, moveEqualVl), // Play any value on matching variants
             new PlayableMove(NumeralCard, moveEqualVt), // Play any variant on matching values
             new PlayableMove(DrawNumeralCard, moveEqualVt),
@@ -55,7 +68,7 @@ export class DeckOptions {
             new PlayableMove(WildCard, moveAny),
             new PlayableMove(DrawNumeralWildCard, moveAny),
         ], (1 / 108) * 4 * 19),
-        new Blueprint(DrawNumeralCard, [ColorVariant.Red, ColorVariant.Blue, ColorVariant.Yellow, ColorVariant.Green], "2", [
+        new Blueprint(DrawNumeralCard, this.colors, "2", [
             new PlayableMove(NumeralCard, moveEqualVt, true),
             new PlayableMove(DrawNumeralCard, moveAny),
             new PlayableMove(ReverseDirectionCard, moveEqualVt, true),
@@ -63,7 +76,7 @@ export class DeckOptions {
             new PlayableMove(WildCard, moveAny, true),
             new PlayableMove(DrawNumeralWildCard, moveAny, true),
         ], (1 / 108) * 4 * 2),
-        new Blueprint(ReverseDirectionCard, [ColorVariant.Red, ColorVariant.Blue, ColorVariant.Yellow, ColorVariant.Green], "*", [
+        new Blueprint(ReverseDirectionCard, this.colors, "*", [
             new PlayableMove(NumeralCard, moveEqualVt),
             new PlayableMove(DrawNumeralCard, moveEqualVt),
             new PlayableMove(ReverseDirectionCard, moveAny),
@@ -71,7 +84,7 @@ export class DeckOptions {
             new PlayableMove(WildCard, moveAny),
             new PlayableMove(DrawNumeralWildCard, moveAny),
         ], (1 / 108) * 4 * 2),
-        new Blueprint(SkipTurnCard, [ColorVariant.Red, ColorVariant.Blue, ColorVariant.Yellow, ColorVariant.Green], "*", [
+        new Blueprint(SkipTurnCard, this.colors, "*", [
             new PlayableMove(NumeralCard, moveEqualVt),
             new PlayableMove(DrawNumeralCard, moveEqualVt),
             new PlayableMove(ReverseDirectionCard, moveEqualVt),
@@ -129,5 +142,4 @@ export class DeckOptions {
             this.blueprints[i].t = i;
         }
     }
-
 }

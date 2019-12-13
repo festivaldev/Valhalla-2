@@ -4,8 +4,13 @@ import Logger, { LogLevel } from "../../util/Logger";
 import Player from "../../classes/Player";
 import User from "../../classes/User";
 
+import { Deck } from "./Deck";
+
 export default class UnoGameLogic implements IGameLogic {
     delegate: Game;
+    
+    public deck: Deck = new Deck();
+    public drawStack: number = 0;
 	
 	constructor(delegate: Game) {
         this.delegate = delegate;

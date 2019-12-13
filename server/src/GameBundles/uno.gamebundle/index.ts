@@ -12,9 +12,11 @@ import Player from "../../classes/Player";
 
 import { UnknownCard } from "./models/Card";
 import { Deck, DeckOptions } from "./Deck";
-import { DrawNumeralCard, NumeralCard } from "./cards";
+import { DrawNumeralCard, NumeralCard, DrawNumeralWildCard } from "./cards";
 import { PlayableMove } from "./models/PlayableMove";
 import { GameBundleInfo } from "../../classes/Constants";
+import { Blueprint } from "./models/Blueprint";
+import { ColorVariant } from "./variants";
 
 export class UnoGameBundle implements IGameBundle {    
 	author: string = "vainamov";
@@ -30,7 +32,14 @@ export class UnoGameBundle implements IGameBundle {
         expressApp.use(`/${this.route}`, Middleware);
         
         const d = new Deck();
-        d.generateCards(20000);
+        // const cards = d.readCards(Uint8Array.from([1, 8, 42, 0, 4, 0]));
+        const cards = d.generateCards(1);
+
+        // cards.forEach(_ => {
+        //     _.handleFollowing(_, null);
+        // });
+
+        console.debug(cards);
 	}
 	
 	createGameLogicInstance(game: Game): UnoGameLogic {

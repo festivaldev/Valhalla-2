@@ -1,3 +1,5 @@
+import UnoGameLogic from "../UnoGameLogic";
+
 export abstract class Card {
     protected data: Uint8Array = new Uint8Array(3);
 
@@ -13,11 +15,11 @@ export abstract class Card {
         this.data[0] = value;
     }
 
-    protected get variant(): number {
+    public get variant(): number {
         return this.data[1];
     }
 
-    protected get value(): number {
+    public get value(): number {
         return this.data[2];
     }
 
@@ -25,8 +27,8 @@ export abstract class Card {
         this.type = type;
     }
 
-    public abstract handleFollowing(following: Card): void;
-    public abstract handlePreceding(preceding: Card): void;
+    public abstract handleFollowing(following: Card, logic: UnoGameLogic): void;
+    public abstract handlePreceding(preceding: Card, logic: UnoGameLogic): void;
 }
 
 export class UnknownCard extends Card {
@@ -36,6 +38,6 @@ export class UnknownCard extends Card {
         this.data = new Uint8Array(bytes);
     }
 
-    public handleFollowing(following: Card): void {}
-    public handlePreceding(preceding: Card): void {}
+    public handleFollowing(following: Card, logic: UnoGameLogic): void {}
+    public handlePreceding(preceding: Card, logic: UnoGameLogic): void {}
 }
